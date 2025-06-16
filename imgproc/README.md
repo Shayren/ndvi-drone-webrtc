@@ -1,0 +1,1 @@
+Xử lý ảnh NDVI từ camera kép (RGB + NIR).
