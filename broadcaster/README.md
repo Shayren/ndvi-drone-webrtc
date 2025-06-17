@@ -1,1 +1,1 @@
-Client WebRTC trên Raspberry Pi, truyền video về server.
+Client WebRTC trên Raspberry Pi với role là Broadcaster, truyền video về server.
