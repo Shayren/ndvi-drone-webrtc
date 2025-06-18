@@ -1,113 +1,88 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Live Viewer</title>
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: "Segoe UI", sans-serif;
-      background-color: #f5f5f5;
-      color: #333;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: start;
-      height: 100vh;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NDVI Drone Telemetry</title>
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body>
+    <!-- 🔷 HEADER -->
+    <header id="top-header">
+      <img src="/static/logo.png" alt="Logo" id="logo" />
+      <h1 id="system-name">Can Tho University</h1>
+    </header>
 
-    header {
-      margin: 20px 0;
-      text-align: center;
-    }
+    <!-- 📦 MAIN CONTENT -->
+    <div id="main">
+      <!-- 🔶 Login screen -->
+      <div id="login-screen" class="screen active">
+        <h2 class="login-title">ViNDVI</h2>
+        <p class="login-subtitle">
+          Enter your name and connect to the NDVI drone telemetry system.
+        </p>
+        <div class="input-group">
+          <input
+            type="text"
+            id="username"
+            placeholder="Enter your name (e.g. John Smith)"
+          />
+        </div>
+        <button onclick="submitUsername()">Connect to System</button>
+        <div id="status">
+          <div class="status-indicator"></div>
+          <span>Disconnected</span>
+        </div>
+      </div>
 
-    #status {
-      margin-bottom: 10px;
-      font-size: 14px;
-      color: #555;
-    }
+      <!-- 🔶 Viewer screen -->
+      <div id="viewer-screen" class="screen">
+        <div class="stream-container">
+          <div class="video-placeholder" id="placeholder">
+            <div class="placeholder-icon">🌿</div>
+            <h3 class="placeholder-text">Waiting for NDVI drone connection</h3>
+            <p class="placeholder-text">
+              The system will display real-time vegetation analysis once the
+              broadcaster is connected
+            </p>
+          </div>
+          <img
+            id="video"
+            src="/static/placeholder.jpg"
+            alt="NDVI Drone Feed"
+            style="display: none"
+          />
+          <div id="waiting" style="display: none">
+            <div class="loader"></div>
+            <span>Waiting for broadcaster signal...</span>
+          </div>
+        </div>
 
-    .container {
-      position: relative;
-    }
+        <div id="sidebar">
+          <h3 class="sidebar-title">
+            <span>Active Viewers</span>
+            <span id="viewer-count">0</span>
+          </h3>
+          <ul id="viewer-list"></ul>
+        </div>
+      </div>
+    </div>
 
-    img {
-      max-width: 90vw;
-      max-height: 80vh;
-      border: 2px solid #ccc;
-      border-radius: 12px;
-      background: #ddd;
-      object-fit: contain;
-      cursor: pointer;
-      transition: 0.3s;
-    }
+    <!-- 🔻 FOOTER -->
+    <footer id="page-footer">
+      <div class="footer-content">
+        <strong>Graduation Thesis</strong><br />
+        Faculty of Electronics and Telecommunications – University of Technology
+        and Engineering<br />
+        <em
+          >Design and Implementation of a Drone System for Aerial NDVI Imaging
+          and Remote Visualization</em
+        >
+      </div>
+    </footer>
 
-    .fullscreen {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw !important;
-      height: 100vh !important;
-      z-index: 1000;
-      object-fit: contain;
-      background: black;
-      border: none;
-      margin: 0;
-    }
-
-    #waiting {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 20px;
-      color: #999;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <img id="video" src="/static/placeholder.jpg" alt="Waiting for stream..." />
-  </div>
-
-  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-  <script>
-    const socket = io();
-    const video = document.getElementById("video");
-    const waiting = document.getElementById("waiting");
-    const status = document.getElementById("status");
-
-    let hasBroadcaster = false;
-
-    socket.on("connect", () => {
-      console.log("[Viewer] connected:", socket.id);
-      socket.emit("join_viewer");
-    });
-
-    socket.on("image_frame", data => {
-      hasBroadcaster = true;
-      video.src = "data:image/jpeg;base64," + data.image;
-      waiting.style.display = "none";
-    });
-
-    socket.on("peer_disconnect", () => {
-      console.log("[Viewer] broadcaster disconnected");
-      hasBroadcaster = false;
-      waiting.style.display = "block";
-      video.src = "/static/placeholder.jpg";
-    });
-
-    socket.on("no_broadcaster", () => {
-      console.log("[Viewer] No broadcaster available");
-      status.innerText = "⚠️ Không có tín hiệu từ broadcaster";
-      waiting.style.display = "block";
-      video.src = "/static/placeholder.jpg";
-    });
-
-    video.addEventListener("click", () => {
-      video.classList.toggle("fullscreen");
-    });
-  </script>
-</body>
+    <!-- Scripts -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="/static/script.js"></script>
+  </body>
 </html>
