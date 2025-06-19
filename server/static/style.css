@@ -32,13 +32,13 @@ body {
     height: 100px;
     display: flex;
     align-items: center;
+    /* Giữ ảnh căn giữa theo chiều dọc */
+    justify-content: flex-start;
+    /* Ảnh căn trái */
     gap: 16px;
     padding: 0 25px;
-    background: linear-gradient(90deg,
-            var(--primary) 0%,
-            var(--primary-dark) 100%);
+    background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 100%);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    flex-shrink: 0;
     color: white;
     position: relative;
     overflow: hidden;
@@ -54,28 +54,21 @@ body {
     background: radial-gradient(circle,
             rgba(255, 255, 255, 0.1) 0%,
             rgba(255, 255, 255, 0) 70%);
-    transform: rotate(30deg);
+    transform: rotate(40deg);
 }
 
 #logo {
-    height: 80px;
-    width: 80px;
+    height: 100%;
+    width: auto;
     object-fit: contain;
-    background-color: #00000000;
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    border-radius: 30%;
-    padding: 5px;
+    background-color: transparent;
     z-index: 1;
     border: none;
-}
-
-#system-name {
-    font-size: 24px;
-    margin: 0;
-    color: white;
-    font-weight: 600;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    z-index: 1;
+    display: block;
+    pointer-events: none;
+    filter: brightness(1.0) contrast(1.5);
+    background: transparent;
+    box-shadow: none;
 }
 
 /* === MAIN === */
@@ -94,13 +87,13 @@ body {
 
 .screen {
     flex: 1;
-    display: none;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     width: 90%;
     max-width: 1400px;
     margin: 0 auto;
+    display: none;
 }
 
 .screen.active {
@@ -151,9 +144,9 @@ body {
 }
 
 .placeholder-text {
-    font-size: 18px;
+    font-size: auto;
     color: var(--gray);
-    max-width: 300px;
+    max-width: 90%;
     line-height: 1.5;
 }
 
@@ -174,32 +167,36 @@ img:hover {
 }
 
 #login-screen {
+    width: 80%;
+    height: 80%;
+    max-width: 600px;
+    max-height: 600px;
+    margin: auto;
+    padding: 1rem;
     background: white;
-    border-radius: 16px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    flex-direction: column;
+    justify-content: center;
+    box-sizing: border-box;
     text-align: center;
-    max-width: 50%;
-    width: 50%;
-    max-height: 90%;
 }
 
-.login-title {
-    font-size: 40px;
-    color: var(--primary);
-    margin-bottom: 50px;
-    font-weight: 1200;
+.login-image {
+    max-width: 70%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    pointer-events: none;
+    filter: brightness(1.0) contrast(1.5);
+    background: transparent;
+    box-shadow: none;
+    margin-bottom: 8%;
 }
 
-.login-subtitle {
-    font-size: 16px;
-    color: var(--gray);
-    margin-bottom: 30px;
-    line-height: 1.6;
-}
 
 .input-group {
-    width: 100%;
+    width: 60%;
     margin-bottom: 25px;
 }
 
@@ -300,14 +297,16 @@ button:active {
 }
 
 #sidebar {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
     width: 250px;
     background: white;
     border-radius: 16px;
     padding: 20px;
-    overflow-y: auto;
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
-    display: flex;
-    flex-direction: column;
+    gap: 12px;
 }
 
 .sidebar-title {
@@ -320,12 +319,88 @@ button:active {
     gap: 8px;
 }
 
+#sidebar-toggle {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.toggle-btn {
+    width: clamp(2.5rem, 8vw, 3rem);
+    aspect-ratio: 1 / 1;
+    /* Đảm bảo hình tròn */
+    border: none;
+    border-radius: 50%;
+    background: var(--light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    transition: transform 0.2s ease, background 0.2s ease;
+    padding: 0;
+    /* Đảm bảo không làm méo aspect-ratio */
+}
+
+.toggle-btn.active {
+    background: var(--primary);
+}
+
+.toggle-btn.active .icon {
+    fill: white;
+}
+
+.toggle-btn .icon {
+    width: 60%;
+    height: 60%;
+    fill: var(--gray);
+    transition: fill 0.2s ease;
+}
+
+.toggle-btn:hover {
+    transform: translateY(-2px) scale(1.05);
+    background: var(--primary-dark);
+}
+
+.toggle-btn:hover .icon {
+    fill: white;
+}
+
+#viewer-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #f9f9f9;
+    border-radius: 12px;
+    padding: 12px;
+    overflow: hidden;
+    min-height: 0;
+}
+
+.viewer-header {
+    flex-shrink: 0;
+    margin-bottom: 10px;
+}
+
 #viewer-list {
+    margin-top: auto;
     list-style: none;
     padding-left: 0;
-    font-size: 14px;
     margin: 0;
-    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    max-height: 100%;
+    flex-grow: 1;
+}
+
+#info-panel {
+    flex-shrink: 0;
+    background: #f1f3f5;
+    border-radius: 12px;
+    padding: 12px;
+    font-size: 14px;
+    color: var(--gray);
 }
 
 #viewer-list li {
@@ -354,6 +429,16 @@ button:active {
     justify-content: center;
     color: white;
     font-size: 12px;
+}
+
+#info-panel {
+    flex: 1;
+    margin-top: 10px;
+    padding: 10px;
+    background: #f1f3f5;
+    border-radius: 12px;
+    font-size: 14px;
+    color: var(--gray);
 }
 
 .fullscreen {
@@ -420,16 +505,26 @@ button:active {
         gap: 14px;
     }
 
+    #sidebar-toggle {
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .toggle-btn {
+        width: 3rem;
+    }
+
+    .toggle-btn .icon {
+        width: 70%;
+        height: 70%;
+    }
+
     #sidebar {
         width: 220px;
     }
 
     .stream-container {
         min-height: 460px;
-    }
-
-    #system-name {
-        font-size: 22px;
     }
 }
 
@@ -440,6 +535,20 @@ button:active {
 
     #viewer-screen {
         gap: 14px;
+    }
+
+    #sidebar-toggle {
+        gap: 1.25rem;
+        margin-bottom: 1.75rem;
+    }
+
+    .toggle-btn {
+        width: 2.75rem;
+    }
+
+    .toggle-btn .icon {
+        width: 65%;
+        height: 65%;
     }
 
     #sidebar {
@@ -463,6 +572,14 @@ button:active {
     #viewer-screen {
         flex-direction: column;
         gap: 20px;
+    }
+
+    #sidebar-toggle {
+        gap: 0.75rem;
+    }
+
+    .toggle-btn {
+        width: 2rem;
     }
 
     #sidebar {
@@ -501,6 +618,14 @@ button:active {
         flex-direction: column;
     }
 
+    #sidebar-toggle {
+        gap: 1rem;
+    }
+
+    .toggle-btn {
+        width: 2.5rem;
+    }
+
     #sidebar {
         width: 100%;
         max-height: 200px;
@@ -508,10 +633,6 @@ button:active {
 
     .stream-container {
         min-height: 400px;
-    }
-
-    #system-name {
-        font-size: 18px;
     }
 }
 
@@ -542,11 +663,6 @@ button:active {
     #logo {
         height: 50px;
         width: 50px;
-    }
-
-    #system-name {
-        font-size: 18px;
-        line-height: 1.2;
     }
 
     .login-title {
@@ -581,7 +697,10 @@ button:active {
 
 @media (max-width: 600px) {
     #login-screen {
-        padding: 30px 20px;
+        width: 90%;
+        height: 90%;
+        padding: 1rem;
+        box-sizing: border-box;
     }
 
     .login-title {
@@ -596,6 +715,19 @@ button:active {
     #logo {
         height: 50px;
         width: 50px;
+    }
+
+    #sidebar-toggle {
+        gap: 0.5rem;
+    }
+
+    .toggle-btn {
+        width: 1.75rem;
+    }
+
+    #sidebar {
+        width: 100%;
+        padding: 1rem;
     }
 }
 

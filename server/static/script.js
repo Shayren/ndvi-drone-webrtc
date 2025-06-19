@@ -16,42 +16,61 @@ let savedUsername = "";
 function submitUsername() {
     const username = usernameInput.value.trim();
     if (!username) {
-        showAlert("Please enter your name");
+        showAlert("Vui lòng nhập tên của bạn", "warning");
         return;
     }
     savedUsername = username;
     socket.emit("join_viewer", { username });
-    // không tự chuyển màn ở đây nữa
 }
 
 // Lắng nghe kết quả
 socket.on("username_error", (data) => {
-    showAlert(data.message);
+    showAlert(data.message, "danger");
 });
 
 socket.on("join_success", () => {
-    // Update status
     statusIndicator.classList.add("connected");
     statusText.textContent = `Connected as: ${savedUsername}`;
-    // Transition to viewer screen
+
     loginScreen.classList.remove("active");
     viewerScreen.classList.add("active");
     document.getElementById("page-footer").style.display = "block";
+
+    activatePanel('av');
+
+    showAlert("🎉 Đã kết nối thành công!", "success");
 });
 
-function showAlert(message) {
+socket.on("new_viewer", (data) => {
+    showAlert(`👋 ${data.name} vừa tham gia phiên xem`, "info");
+});
+
+const colorMap = {
+    danger: "var(--danger)",
+    success: "var(--success)",
+    warning: "var(--warning)",
+    info: "var(--secondary)"
+};
+
+function showAlert(message, type = "danger") {
+    console.log(`[showAlert] type: ${type}, message: ${message}`);
     const alert = document.createElement("div");
+
     alert.style.position = "fixed";
     alert.style.top = "20px";
     alert.style.left = "50%";
     alert.style.transform = "translateX(-50%)";
-    alert.style.backgroundColor = "var(--danger)";
-    alert.style.color = "white";
     alert.style.padding = "12px 24px";
     alert.style.borderRadius = "8px";
     alert.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
     alert.style.zIndex = "1000";
     alert.style.fontWeight = "500";
+    alert.style.color = "white";
+    alert.style.opacity = "1";
+    alert.style.transition = "opacity 0.3s ease";
+
+    // Apply background using var(...)
+    alert.style.backgroundColor = colorMap[type] || colorMap.danger;
     alert.textContent = message;
 
     document.body.appendChild(alert);
@@ -75,9 +94,7 @@ socket.on("re_authenticate", () => {
 socket.on("connect", () => {
     console.log("[Viewer] connected:", socket.id);
     statusIndicator.classList.add("connected");
-    statusText.textContent = savedUsername
-        ? `Connected as: ${savedUsername}`
-        : "Connected";
+    statusText.textContent = "Connected to server";
 });
 
 socket.on("disconnect", () => {
@@ -118,6 +135,13 @@ socket.on("viewer_list", (data) => {
         const nameSpan = document.createElement("span");
         nameSpan.textContent = viewer.name;
 
+        if (viewer.name === savedUsername) {
+            nameSpan.style.fontWeight = "bold";
+            nameSpan.style.color = "var(--primary-dark)"; // Hoặc màu khác tuỳ thích
+            nameSpan.title = "Bạn";
+        }
+
+        // Nếu là host, thêm dấu sao
         if (viewer.is_host) {
             const star = document.createElement("span");
             star.textContent = " ⭐";
@@ -175,10 +199,31 @@ window.addEventListener("load", () => {
 window.addEventListener("load", () => {
     usernameInput.focus();
 
-    // 👉 Cho phép nhấn Enter để gửi username
     usernameInput.addEventListener("keydown", (event) => {
         if (event.key === "Enter") {
             submitUsername();
         }
     });
 });
+
+const btnCp = document.getElementById('btn-cp');
+const btnAv = document.getElementById('btn-av');
+const panelCp = document.getElementById('panel-cp');
+const panelAv = document.getElementById('panel-av');
+
+function activatePanel(type) {
+    if (type === 'cp') {
+        panelCp.style.display = 'block';
+        panelAv.style.display = 'none';
+        btnCp.classList.add('active');
+        btnAv.classList.remove('active');
+    } else {
+        panelCp.style.display = 'none';
+        panelAv.style.display = 'block';
+        btnCp.classList.remove('active');
+        btnAv.classList.add('active');
+    }
+}
+
+btnCp.addEventListener('click', () => activatePanel('cp'));
+btnAv.addEventListener('click', () => activatePanel('av'));

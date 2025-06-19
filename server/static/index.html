@@ -9,32 +9,27 @@
   <body>
     <!-- 🔷 HEADER -->
     <header id="top-header">
-      <img src="/static/logo.png" alt="Logo" id="logo" />
-      <h1 id="system-name">Can Tho University</h1>
+      <img src="/static/imgs/logo-name.png" alt="Logo" id="logo" />
     </header>
 
     <!-- 📦 MAIN CONTENT -->
     <div id="main">
       <!-- 🔶 Login screen -->
       <div id="login-screen" class="screen active">
-        <h2 class="login-title">ViNDVI</h2>
-        <p class="login-subtitle">
-          Enter your name and connect to the NDVI drone telemetry system.
-        </p>
+        <img
+          src="/static/imgs/login-title.png"
+          alt="ViNDVI Logo"
+          class="login-image"
+        />
         <div class="input-group">
-          <input
-            type="text"
-            id="username"
-            placeholder="Enter your name (e.g. John Smith)"
-          />
+          <input type="text" id="username" placeholder="Enter your name" />
         </div>
-        <button onclick="submitUsername()">Connect to System</button>
+        <button onclick="submitUsername()">Join</button>
         <div id="status">
           <div class="status-indicator"></div>
-          <span>Disconnected</span>
+          <span>No connection with server</span>
         </div>
       </div>
-
       <!-- 🔶 Viewer screen -->
       <div id="viewer-screen" class="screen">
         <div class="stream-container">
@@ -48,7 +43,7 @@
           </div>
           <img
             id="video"
-            src="/static/placeholder.jpg"
+            src="/static/imgs/placeholder.jpg"
             alt="NDVI Drone Feed"
             style="display: none"
           />
@@ -58,12 +53,41 @@
           </div>
         </div>
 
+        <!-- 🔷 SIDEBAR -->
         <div id="sidebar">
-          <h3 class="sidebar-title">
-            <span>Active Viewers</span>
-            <span id="viewer-count">0</span>
-          </h3>
-          <ul id="viewer-list"></ul>
+          <!-- Toggle Icons -->
+          <div id="sidebar-toggle">
+            <button id="btn-av" class="toggle-btn active" title="Viewers">
+              <svg viewBox="0 0 24 24" class="icon">
+                <path
+                  d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5C15 14.17 10.33 13 8 13zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"
+                />
+              </svg>
+            </button>
+            <button id="btn-cp" class="toggle-btn" title="Control Panel">
+              <svg viewBox="0 0 24 24" class="icon">
+                <path
+                  d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8v-10h-8v10zm0-18v6h8V3h-8z"
+                />
+              </svg>
+            </button>
+          </div>
+
+          <!-- Content Panels -->
+          <div id="panel-cp" class="sidebar-panel">
+            <h3 class="sidebar-title">Control Panel</h3>
+            <p class="placeholder-text">No additional data yet.</p>
+          </div>
+
+          <div id="panel-av" class="sidebar-panel" style="display: none">
+            <div class="viewer-header">
+              <h3 class="sidebar-title">
+                <span>Active Viewers</span>
+                <span id="viewer-count"> 0 </span>
+              </h3>
+            </div>
+            <ul id="viewer-list"></ul>
+          </div>
         </div>
       </div>
     </div>
@@ -72,12 +96,12 @@
     <footer id="page-footer">
       <div class="footer-content">
         <strong>Graduation Thesis</strong><br />
+        <em>
+          Design and Implementation of a Drone System for Aerial NDVI Imaging
+          and Remote Visualization </em
+        ><br />
         Faculty of Electronics and Telecommunications – University of Technology
-        and Engineering<br />
-        <em
-          >Design and Implementation of a Drone System for Aerial NDVI Imaging
-          and Remote Visualization</em
-        >
+        and Engineering
       </div>
     </footer>
 

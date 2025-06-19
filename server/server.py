@@ -6,14 +6,14 @@ from aiohttp import web
 sio = socketio.AsyncServer(cors_allowed_origins='*')
 app = web.Application()
 sio.attach(app)
-
 # Dữ liệu server
 peers = {}               # viewer_id -> broadcaster_id
 viewer_names = {}        # sid -> username
 broadcasters = set()     # broadcaster đang online
 pending_viewers = set()  # viewer chưa ghép được
-
+current_image_type = "default"
 host_sid = None  # Global biến để lưu viewer đầu tiên
+joined_viewers = set()
 
 @sio.event
 async def connect(sid, environ):
@@ -53,7 +53,10 @@ async def disconnect(sid):
         else:
             host_sid = None
 
+    joined_viewers.discard(sid)
+    
     await broadcast_viewer_list()
+    
 
 @sio.event
 async def join_broadcaster(sid):
@@ -91,11 +94,19 @@ async def join_viewer(sid, data):
     global host_sid
     if host_sid is None:
         host_sid = sid
+        
     print(f"[SERVER] Viewer '{username}' được đánh dấu là HOST")
     print(f"[VIEWER] {sid} joined as '{username}'")
     await sio.emit('join_success', {}, room=sid)
-
+    
+    joined_viewers.add(sid)
+    
+    for vsid in joined_viewers:
+        if vsid != sid:
+            await sio.emit('new_viewer', {'name': username}, room=vsid)
+    
     await broadcast_viewer_list()
+    
     for broadcaster_sid in broadcasters:
         if broadcaster_sid in sio.manager.rooms['/']:
             peers[sid] = broadcaster_sid
@@ -138,6 +149,24 @@ async def image_frame(sid, data):
         if broadcaster_id == sid:
             await sio.emit("image_frame", data, room=viewer_id)
 
+@sio.event
+async def change_image_type(sid, data):
+    global current_image_type, host_sid
+
+    if sid != host_sid:
+        print(f"[SERVER] Viewer {sid} không phải Host nên không thể thay đổi ảnh")
+        return  # Không phải host → bỏ qua
+
+    img_type = data.get("type")
+    if img_type not in ("default", "nir", "ndvi"):
+        print(f"[SERVER] Loại ảnh không hợp lệ: {img_type}")
+        return
+
+    current_image_type = img_type
+    print(f"[SERVER] Host chọn loại ảnh: {img_type}")
+
+    await sio.emit("image_type_changed", {"type": img_type})
+
 async def broadcast_viewer_list():
     unique_list = []
     for sid, name in viewer_names.items():
@@ -146,10 +175,11 @@ async def broadcast_viewer_list():
             "is_host": (sid == host_sid)
         })
 
-    await sio.emit('viewer_list', {
-        'count': len(unique_list),
-        'viewers': unique_list
-    })
+    for vsid in joined_viewers:
+        await sio.emit('viewer_list', {
+            'count': len(unique_list),
+            'viewers': unique_list
+        }, room=vsid)
 
 # Static file serving
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
