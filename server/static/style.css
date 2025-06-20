@@ -1,3 +1,6 @@
+/* ========================
+   🧱 1. ROOT & RESET
+   ======================== */
 :root {
     --primary: #0066cc;
     --primary-dark: #0052a3;
@@ -22,19 +25,21 @@ body {
     height: 100vh;
     display: flex;
     flex-direction: column;
-    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Poppins', sans-serif;
     background: linear-gradient(135deg, #e6f7ff 0%, #f0f8ff 100%);
     color: var(--dark);
     overflow: hidden;
 }
 
+
+/* ========================
+   🧩 2. HEADER
+   ======================== */
 #top-header {
     height: 100px;
     display: flex;
     align-items: center;
-    /* Giữ ảnh căn giữa theo chiều dọc */
     justify-content: flex-start;
-    /* Ảnh căn trái */
     gap: 16px;
     padding: 0 25px;
     background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 100%);
@@ -51,9 +56,7 @@ body {
     left: -50%;
     width: 200%;
     height: 200%;
-    background: radial-gradient(circle,
-            rgba(255, 255, 255, 0.1) 0%,
-            rgba(255, 255, 255, 0) 70%);
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 70%);
     transform: rotate(40deg);
 }
 
@@ -71,11 +74,12 @@ body {
     box-shadow: none;
 }
 
-/* === MAIN === */
+
+/* ========================
+   🧱 3. MAIN LAYOUT
+   ======================== */
 #main {
     flex: 1;
-    min-height: calc(100vh - 160px);
-    /* trừ header/footer */
     overflow-y: auto;
     display: flex;
     flex-direction: column;
@@ -109,6 +113,10 @@ body {
     flex-wrap: wrap;
 }
 
+
+/* ========================
+   🎥 4. STREAM + IMAGE + PLACEHOLDER
+   ======================== */
 .stream-container {
     flex: 1;
     display: flex;
@@ -146,7 +154,7 @@ body {
 .placeholder-text {
     font-size: auto;
     color: var(--gray);
-    max-width: 90%;
+    max-width: 100%;
     line-height: 1.5;
 }
 
@@ -166,6 +174,10 @@ img:hover {
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
 
+
+/* ========================
+   🔐 5. LOGIN FORM
+   ======================== */
 #login-screen {
     width: 80%;
     height: 80%;
@@ -183,7 +195,7 @@ img:hover {
 }
 
 .login-image {
-    max-width: 70%;
+    max-width: 60%;
     width: auto;
     height: auto;
     object-fit: contain;
@@ -191,12 +203,11 @@ img:hover {
     filter: brightness(1.0) contrast(1.5);
     background: transparent;
     box-shadow: none;
-    margin-bottom: 8%;
+    margin-bottom: 5%;
 }
 
-
 .input-group {
-    width: 60%;
+    width: 80%;
     margin-bottom: 25px;
 }
 
@@ -213,16 +224,14 @@ input[type="text"] {
 input[type="text"]:focus {
     outline: none;
     border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.2);
+    box-shadow: 0 0 0 3px rgba(2, 64, 236, 0.2);
 }
 
 button {
     padding: 15px 40px;
     font-size: 16px;
     border: none;
-    background: linear-gradient(90deg,
-            var(--primary) 0%,
-            var(--primary-dark) 100%);
+    background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 100%);
     color: white;
     border-radius: 10px;
     cursor: pointer;
@@ -233,9 +242,7 @@ button {
 }
 
 button:hover {
-    background: linear-gradient(90deg,
-            var(--primary-dark) 0%,
-            #004080 100%);
+    background: linear-gradient(90deg, var(--primary-dark) 0%, #004080 100%);
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(0, 102, 204, 0.4);
 }
@@ -244,8 +251,12 @@ button:active {
     transform: translateY(0);
 }
 
+
+/* ========================
+   📶 6. STATUS / INDICATORS
+   ======================== */
 #status {
-    margin-top: 20px;
+    margin-top: 5px;
     font-size: 14px;
     color: var(--gray);
     display: flex;
@@ -296,10 +307,14 @@ button:active {
     }
 }
 
+
+/* ========================
+   🧭 7. SIDEBAR + TOGGLE
+   ======================== */
 #sidebar {
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: flex-start;
     height: 100%;
     width: 250px;
     background: white;
@@ -329,7 +344,6 @@ button:active {
 .toggle-btn {
     width: clamp(2.5rem, 8vw, 3rem);
     aspect-ratio: 1 / 1;
-    /* Đảm bảo hình tròn */
     border: none;
     border-radius: 50%;
     background: var(--light);
@@ -337,10 +351,17 @@ button:active {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-    transition: transform 0.2s ease, background 0.2s ease;
     padding: 0;
-    /* Đảm bảo không làm méo aspect-ratio */
+    transition: transform 0.2s ease, background 0.2s ease;
+    outline: none;
+    box-shadow: none;
+}
+
+.toggle-btn:focus,
+.toggle-btn:focus-visible,
+.toggle-btn .icon:focus {
+    outline: none !important;
+    box-shadow: none !important;
 }
 
 .toggle-btn.active {
@@ -367,6 +388,10 @@ button:active {
     fill: white;
 }
 
+
+/* ========================
+   👥 8. VIEWERS & INFO PANEL
+   ======================== */
 #viewer-section {
     flex: 1;
     display: flex;
@@ -392,15 +417,6 @@ button:active {
     overflow-x: hidden;
     max-height: 100%;
     flex-grow: 1;
-}
-
-#info-panel {
-    flex-shrink: 0;
-    background: #f1f3f5;
-    border-radius: 12px;
-    padding: 12px;
-    font-size: 14px;
-    color: var(--gray);
 }
 
 #viewer-list li {
@@ -441,6 +457,10 @@ button:active {
     color: var(--gray);
 }
 
+
+/* ========================
+   🔍 9. FULLSCREEN IMAGE
+   ======================== */
 .fullscreen {
     position: fixed;
     top: 0;
@@ -457,16 +477,17 @@ button:active {
     cursor: zoom-out;
 }
 
-/* === FOOTER === */
+
+/* ========================
+   📄 10. FOOTER
+   ======================== */
 #page-footer {
     flex-shrink: 0;
     font-size: 12px;
     color: white;
     text-align: center;
     padding: 10px;
-    background: linear-gradient(90deg,
-            var(--primary) 0%,
-            var(--primary-dark) 100%);
+    background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 100%);
     z-index: 2;
 }
 
@@ -476,7 +497,10 @@ button:active {
     padding: 0 20px;
 }
 
-/* === LOADER === */
+
+/* ========================
+   🔄 11. LOADER
+   ======================== */
 .loader {
     display: inline-block;
     width: 20px;
@@ -493,53 +517,64 @@ button:active {
     }
 }
 
-/* === MEDIA QUERIES === */
-@media only screen and (width: 3200px) and (height: 2136px) and (orientation: landscape) {
 
-    /* Giữ layout row, chỉ tinh chỉnh padding/gap cho vừa */
+/* ========================
+   📱 12. MEDIA QUERIES
+   ======================== */
+@media screen and (min-width: 600px) and (max-width: 700px) and (orientation: portrait) {
     #main {
-        padding: 12px 24px;
+        padding: 20px;
     }
 
     #viewer-screen {
-        gap: 14px;
-    }
-
-    #sidebar-toggle {
-        gap: 1.5rem;
-        margin-bottom: 2rem;
-    }
-
-    .toggle-btn {
-        width: 3rem;
-    }
-
-    .toggle-btn .icon {
-        width: 70%;
-        height: 70%;
+        flex-direction: column;
+        gap: 20px;
     }
 
     #sidebar {
-        width: 220px;
+        width: 100%;
+        max-height: 250px;
     }
 
     .stream-container {
-        min-height: 460px;
+        min-height: 420px;
+        padding: 15px;
+    }
+
+    #sidebar-toggle {
+        gap: 1rem;
+    }
+
+    .toggle-btn {
+        width: 2.5rem;
     }
 }
 
-@media only screen and (max-width: 1280px) and (orientation: landscape) {
+@media screen and (min-width: 1000px) and (max-width: 1100px) and (orientation: landscape) {
     #main {
-        padding: 12px 24px;
+        padding: 16px 24px;
     }
 
     #viewer-screen {
-        gap: 14px;
+        flex-direction: row;
+        gap: 16px;
+        flex-wrap: wrap;
+        align-items: stretch;
+    }
+
+    #sidebar {
+        width: 240px;
+        max-height: none;
+    }
+
+    .stream-container {
+        min-height: 500px;
+        padding: 20px;
     }
 
     #sidebar-toggle {
         gap: 1.25rem;
-        margin-bottom: 1.75rem;
+        margin-bottom: 1.5rem;
     }
 
     .toggle-btn {
@@ -550,190 +585,4 @@ button:active {
         width: 65%;
         height: 65%;
     }
-
-    #sidebar {
-        width: 220px;
-    }
-
-    .stream-container {
-        min-height: 460px;
-    }
-
-    #page-footer {
-        position: relative;
-    }
-}
-
-@media only screen and (max-width: 800px) and (orientation: portrait) {
-    #main {
-        padding: 20px 16px;
-    }
-
-    #viewer-screen {
-        flex-direction: column;
-        gap: 20px;
-    }
-
-    #sidebar-toggle {
-        gap: 0.75rem;
-    }
-
-    .toggle-btn {
-        width: 2rem;
-    }
-
-    #sidebar {
-        width: 100%;
-        max-height: 250px;
-    }
-
-    .stream-container {
-        min-height: 380px;
-    }
-
-    #page-footer {
-        position: relative;
-    }
-}
-
-@media (max-width: 1200px) {
-    #main {
-        padding: 10px;
-    }
-
-    #viewer-screen {
-        flex-direction: column;
-        align-items: center;
-        gap: 10px;
-    }
-
-    #sidebar {
-        width: 100%;
-        max-height: 200px;
-    }
-}
-
-@media (max-width: 900px) {
-    #viewer-screen {
-        flex-direction: column;
-    }
-
-    #sidebar-toggle {
-        gap: 1rem;
-    }
-
-    .toggle-btn {
-        width: 2.5rem;
-    }
-
-    #sidebar {
-        width: 100%;
-        max-height: 200px;
-    }
-
-    .stream-container {
-        min-height: 400px;
-    }
-}
-
-@media (min-width: 800px) and (orientation: landscape) {
-    #viewer-screen {
-        flex-direction: row !important;
-        align-items: stretch;
-    }
-
-    #sidebar {
-        width: 250px;
-        max-height: none;
-    }
-
-    .stream-container {
-        min-height: 500px;
-    }
-}
-
-@media (max-width: 768px) {
-    #top-header {
-        height: auto;
-        padding: 10px 15px;
-        flex-direction: row;
-        gap: 10px;
-    }
-
-    #logo {
-        height: 50px;
-        width: 50px;
-    }
-
-    .login-title {
-        font-size: 22px;
-    }
-
-    .login-subtitle {
-        font-size: 14px;
-    }
-
-    button {
-        width: 100%;
-        padding: 14px;
-    }
-
-    #viewer-screen {
-        flex-direction: column;
-        gap: 20px;
-    }
-
-    #sidebar {
-        width: 100%;
-        max-height: 250px;
-        overflow-y: auto;
-    }
-
-    .stream-container {
-        min-height: 300px;
-        padding: 10px;
-    }
-}
-
-@media (max-width: 600px) {
-    #login-screen {
-        width: 90%;
-        height: 90%;
-        padding: 1rem;
-        box-sizing: border-box;
-    }
-
-    .login-title {
-        font-size: 24px;
-    }
-
-    #top-header {
-        padding: 0 15px;
-        height: 80px;
-    }
-
-    #logo {
-        height: 50px;
-        width: 50px;
-    }
-
-    #sidebar-toggle {
-        gap: 0.5rem;
-    }
-
-    .toggle-btn {
-        width: 1.75rem;
-    }
-
-    #sidebar {
-        width: 100%;
-        padding: 1rem;
-    }
-}
-
-html,
-body {
-    min-height: 100vh;
-    height: auto;
-    overflow: auto;
 }
