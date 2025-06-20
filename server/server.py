@@ -1,5 +1,6 @@
 import os
 import socketio
+import subprocess
 from aiohttp import web
 
 # Khởi tạo server
@@ -192,12 +193,11 @@ app.router.add_get('/', index)
 app.router.add_static('/static/', path=STATIC_DIR, name='static')
 
 if __name__ == '__main__':
-    # from pyngrok import ngrok
+    subprocess.Popen([
+        "start", "cmd", "/k", "ngrok http --subdomain=vindvi --region=ap 5000"
+    ], shell=True)
 
     port = 5000
     print("[SERVER] Starting on http://localhost:5000")
-
-    # public_url = ngrok.connect(port)
-    # print(f"[NGROK] Public URL: {public_url}")
 
     web.run_app(app, port=port)
