@@ -2,36 +2,19 @@ import socketio
 import base64
 import asyncio
 import cv2
-from picamera2 import Picamera2
-from PIL import Image
-import io
 
 sio = socketio.AsyncClient()
 connected_viewers = set()
 send_task = None
 
-# Khởi tạo Picamera2
-picam_rgb = Picamera2(0)  # cam1: RGB
-picam_nir = Picamera2(1)  # cam2: NIR
-
-picam_rgb.configure(picam_rgb.create_preview_configuration(main={"size": (640, 480)}))
-picam_nir.configure(picam_nir.create_preview_configuration(main={"size": (640, 480)}))
-
-picam_rgb.start()
-picam_nir.start()
+# Đọc ảnh RGB từ file (một lần duy nhất)
+rgb_image = cv2.imread("imgs/rgb.jpg")
+if rgb_image is None:
+    raise FileNotFoundError("Không tìm thấy file 'rgb.jpg'")
 
 async def capture_frame():
-    # Lấy ảnh từ cả 2 camera
-    frame_rgb = picam_rgb.capture_array()
-    frame_nir = picam_nir.capture_array()
-
-    # Có thể chọn 1 trong 2 frame gửi
-    # Hoặc ghép lại side-by-side nếu muốn
-    combined = cv2.hconcat([frame_rgb, frame_nir])  # gửi ảnh ghép
-    # combined = frame_rgb  # nếu chỉ muốn gửi RGB
-
     # Encode ảnh thành JPEG và base64
-    _, buffer = cv2.imencode(".jpg", combined)
+    _, buffer = cv2.imencode(".jpg", rgb_image)
     b64_frame = base64.b64encode(buffer).decode('utf-8')
     return b64_frame
 
@@ -66,7 +49,7 @@ async def send_frames():
     print("[BROADCASTER] Stop sending frames (no viewer)")
 
 async def main():
-    await sio.connect("https://8878-2402-800-63b0-a777-bd8a-de4c-cdd7-b244.ngrok-free.app")
+    await sio.connect("http://localhost:5000")  # hoặc ngrok URL
     await sio.wait()
 
 asyncio.run(main())

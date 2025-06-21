@@ -184,7 +184,7 @@ async def broadcast_viewer_list():
 
 # Static file serving
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-STATIC_DIR = os.path.join(ROOT_DIR, 'static')
+STATIC_DIR = os.path.join(ROOT_DIR, '..', 'view', 'static')
 
 async def index(request):
     return web.FileResponse(path=os.path.join(STATIC_DIR, 'index.html'))
