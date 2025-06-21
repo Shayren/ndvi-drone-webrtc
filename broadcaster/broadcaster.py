@@ -6,15 +6,23 @@ import cv2
 sio = socketio.AsyncClient()
 connected_viewers = set()
 send_task = None
+current_image_type = "default"  # loại ảnh được host chọn
 
-# Đọc ảnh RGB từ file (một lần duy nhất)
-rgb_image = cv2.imread("imgs/rgb.jpg")
-if rgb_image is None:
-    raise FileNotFoundError("Không tìm thấy file 'rgb.jpg'")
+# Đọc sẵn ảnh mẫu
+images = {
+    "default": cv2.imread("imgs/rgb.png"),
+    "nir":     cv2.imread("imgs/nir.png"),
+    "ndvi":    cv2.imread("imgs/ndvi.png")
+}
 
-async def capture_frame():
-    # Encode ảnh thành JPEG và base64
-    _, buffer = cv2.imencode(".jpg", rgb_image)
+# Kiểm tra ảnh có tồn tại không
+for k, img in images.items():
+    if img is None:
+        raise FileNotFoundError(f"[ERROR] Không tìm thấy ảnh mẫu '{k}.png' trong imgs/")
+
+def get_current_frame():
+    img = images.get(current_image_type, images["default"])
+    _, buffer = cv2.imencode(".jpg", img)
     b64_frame = base64.b64encode(buffer).decode('utf-8')
     return b64_frame
 
@@ -40,11 +48,21 @@ async def peer_disconnect(data):
         connected_viewers.remove(viewer_id)
         print(f"[BROADCASTER] Viewer disconnected: {viewer_id}")
 
+@sio.on("image_type_changed")
+def on_image_type_changed(data):
+    global current_image_type
+    img_type = data.get("type", "default")
+    if img_type in images:
+        current_image_type = img_type
+        print(f"[BROADCASTER] Đã nhận lệnh đổi ảnh sang: {img_type}")
+    else:
+        print(f"[BROADCASTER] Loại ảnh không hợp lệ: {img_type}")
+
 async def send_frames():
     while connected_viewers:
-        b64 = await capture_frame()
+        b64 = get_current_frame()
         await sio.emit("image_frame", {"image": b64})
-        await asyncio.sleep(0.2)  # 5 FPS (tuỳ chỉnh)
+        await asyncio.sleep(0.2)  # 5 FPS
 
     print("[BROADCASTER] Stop sending frames (no viewer)")
 
