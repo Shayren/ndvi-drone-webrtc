@@ -45,6 +45,9 @@ async def disconnect(sid):
         if remaining:
             host_sid = remaining[0]
             print(f"[SERVER] Chuyển quyền host cho {viewer_names[host_sid]}")
+            
+            await sio.emit("you_are_host", {}, room=host_sid)
+            await sio.emit("image_type_changed", {"type": current_image_type}, room=host_sid)
         else:
             host_sid = None
 
@@ -57,11 +60,19 @@ async def join_broadcaster(sid):
     broadcasters.add(sid)
     print(f"[BROADCASTER] {sid} joined")
 
+    # Thông báo broadcaster đã kết nối tới viewer
+    for viewer_sid in viewer_names:
+        await sio.emit("broadcaster_connected", {}, room=viewer_sid)
+
+    # Ghép các viewer đang chờ (gồm cả host nếu host là người join đầu)
     for viewer_sid in list(pending_viewers):
         peers[viewer_sid] = sid
         await sio.emit('viewer_joined', {'viewer_id': viewer_sid}, room=sid)
         print(f"[SERVER] Pending viewer {viewer_sid} paired → broadcaster {sid}")
         pending_viewers.remove(viewer_sid)
+
+    # Gửi type hiện tại
+    await sio.emit("image_type_changed", {"type": current_image_type}, room=sid)
 
 @sio.event
 async def join_viewer(sid, data):
@@ -112,16 +123,6 @@ async def join_viewer(sid, data):
     print(f"[SERVER] No broadcaster for viewer {sid} ('{username}'). Added to pending.")
 
 @sio.event
-async def check_if_host(sid):
-    print(f"[SERVER] check_if_host được gọi từ: {sid}")
-    print(f"[SERVER] current host_sid: {host_sid}")
-    if sid == host_sid:
-        print(f"[SERVER] Confirmed {sid} là HOST, gửi lại you_are_host")
-        await sio.emit("you_are_host", {}, room=sid)
-        await sio.emit("image_type_changed", {"type": current_image_type}, room=sid)
-        print(f"[SERVER] Đã gửi you_are_host tới {sid}")
-
-@sio.event
 async def image_frame(sid, data):
     for viewer_id, broadcaster_id in list(peers.items()): 
         if broadcaster_id == sid:
@@ -132,11 +133,25 @@ async def change_image_type(sid, data):
     global current_image_type, host_sid
     if sid != host_sid:
         return
+
     img_type = data.get("type")
     if img_type not in ("default", "nir", "ndvi"):
+        print(f"[SERVER] Invalid image type received: {img_type}")
         return
+
     current_image_type = img_type
-    await sio.emit("image_type_changed", {"type": img_type})
+
+    # Gửi cho broadcaster duy nhất
+    broadcaster_sid = next(iter(broadcasters), None)
+    if broadcaster_sid:
+        print(f"[SERVER] Gửi image_type_changed tới broadcaster: {broadcaster_sid}")
+        await sio.emit("image_type_changed", {"type": img_type}, room=broadcaster_sid)
+
+    # Gửi cho toàn bộ viewer để cập nhật giao diện
+    for viewer_sid in viewer_names:
+        await sio.emit("image_type_changed", {"type": img_type}, room=viewer_sid)
+
+    print(f"[SERVER] Image type changed to: {img_type}")
 
 async def broadcast_viewer_list():
     viewers = [

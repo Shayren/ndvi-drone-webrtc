@@ -19,10 +19,20 @@ const imageSelector = document.getElementById("image-type");
 let isHost = false;
 let savedUsername = "";
 
+socket.on("broadcaster_connected", () => {
+    console.log("📡 Broadcaster đã kết nối");
+    waiting.style.display = "none";
+    placeholder.style.display = "none";
+});
+
 socket.on("you_are_host", () => {
     console.log("[CLIENT] You are host!");
     isHost = true;
+
+    document.getElementById("panel-cp").style.display = "block";
     imageSelectorWrapper.style.display = "block";
+    imageSelector.disabled = false;
+
     activatePanel('cp');
 });
 
@@ -34,6 +44,7 @@ imageSelector.addEventListener("change", () => {
     if (isHost) {
         const selectedType = imageSelector.value;
         socket.emit("change_image_type", { type: selectedType });
+        console.log(`[HOST] Changed image type to: ${selectedType}`);
     }
 });
 
@@ -60,11 +71,12 @@ socket.on("join_success", () => {
     document.getElementById("page-footer").style.display = "block";
 
     activatePanel('av');
-    showAlert("🎉 Đã kết nối thành công!", "success");
-    setTimeout(() => {
-        console.log("[DEBUG] emitting check_if_host");
-        socket.emit("check_if_host");
-    }, 300);
+    showAlert("🎉 Join success!", "success");
+
+    if (!isHost) {
+        imageSelectorWrapper.style.display = "block";
+        imageSelector.disabled = true;
+    }
 });
 
 socket.on("new_viewer", (data) => {

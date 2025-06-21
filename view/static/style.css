@@ -172,7 +172,8 @@ img:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
-z
+
+
 /* ========================
    🔐 5. LOGIN FORM
    ======================== */
@@ -455,6 +456,34 @@ button:active {
     color: var(--gray);
 }
 
+.cp-group {
+    margin-bottom: 20px;
+}
+
+.cp-label {
+    font-weight: 500;
+    font-size: 15px;
+    color: var(--dark);
+    margin-bottom: 6px;
+    display: block;
+}
+
+.cp-select {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    background-color: #f9f9f9;
+    font-size: 14px;
+    transition: border 0.2s ease;
+}
+
+.cp-select:focus {
+    outline: none;
+    border-color: var(--primary);
+    background-color: white;
+    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.2);
+}
 
 /* ========================
    🔍 9. FULLSCREEN IMAGE
