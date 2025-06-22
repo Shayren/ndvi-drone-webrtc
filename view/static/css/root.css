@@ -1,0 +1,34 @@
+/* ========================
+   🧱 1. ROOT & RESET
+   ======================== */
+:root {
+    --primary: #0066cc;
+    --primary-dark: #0052a3;
+    --secondary: #00a86b;
+    --accent: #ff6b6b;
+    --light: #f8f9fa;
+    --dark: #212529;
+    --gray: #6c757d;
+    --success: #28a745;
+    --warning: #ffc107;
+    --danger: #dc3545;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html,
+body {
+    display: flex;
+    flex-direction: column;
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #e6f7ff 0%, #f0f8ff 100%);
+    color: var(--dark);
+    height: 100%;
+    margin: 0;
+    overflow-y: hidden;
+    overflow-x: hidden;
+}

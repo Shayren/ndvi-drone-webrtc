@@ -1,0 +1,87 @@
+#sidebar {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    height: 100%;
+    width: 250px;
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(8px);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+    gap: 12px;
+}
+
+.sidebar-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--dark);
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#sidebar-toggle {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.toggle-btn {
+    width: clamp(2.5rem, 8vw, 3rem);
+    aspect-ratio: 1 / 1;
+    border: none;
+    border-radius: 50%;
+    background: var(--light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    transition: transform 0.2s ease, background 0.2s ease;
+    outline: none;
+    box-shadow: none;
+}
+
+.toggle-btn:focus,
+.toggle-btn:focus-visible,
+.toggle-btn .icon:focus {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.toggle-btn.active {
+    background: var(--primary);
+}
+
+.toggle-btn.active .icon {
+    fill: white;
+}
+
+.toggle-btn .icon {
+    width: 60%;
+    height: 60%;
+    fill: var(--gray);
+    transition: fill 0.2s ease;
+}
+
+.toggle-btn:hover {
+    transform: translateY(-2px) scale(1.05);
+    background: var(--primary-dark);
+}
+
+.toggle-btn:hover .icon {
+    fill: white;
+}
+
+#sidebar:hover {
+    transform: scale(1.01);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35), 0 0 20px rgba(2, 132, 199, 0.25);
+    transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+
+#sidebar {
+    transition: transform 0.4s ease, box-shadow 0.4s ease;
+}

@@ -8,9 +8,11 @@ const usernameInput = document.getElementById("username");
 const status = document.getElementById("status");
 const statusIndicator = status.querySelector(".status-indicator");
 const statusText = status.querySelector("span");
+
 const video = document.getElementById("video");
+const videoPlaceholder = document.getElementById("video-placeholder");
 const waiting = document.getElementById("waiting");
-const placeholder = document.getElementById("placeholder");
+
 const viewerCount = document.getElementById("viewer-count");
 const viewerList = document.getElementById("viewer-list");
 const imageSelectorWrapper = document.getElementById("image-selector-wrapper");
@@ -19,10 +21,25 @@ const imageSelector = document.getElementById("image-type");
 let isHost = false;
 let savedUsername = "";
 
+// Fullscreen toggle for both videos
+[video, videoPlaceholder].forEach((vid) => {
+    vid.addEventListener("click", () => {
+        if (!document.fullscreenElement) {
+            vid.requestFullscreen().catch((err) =>
+                console.error(`❌ Failed to fullscreen: ${err.message}`)
+            );
+        } else {
+            document.exitFullscreen();
+        }
+    });
+});
+
+// Broadcaster connected
 socket.on("broadcaster_connected", () => {
     console.log("📡 Broadcaster đã kết nối");
     waiting.style.display = "none";
-    placeholder.style.display = "none";
+    videoPlaceholder.style.display = "none";
+    video.style.display = "block";
 });
 
 socket.on("you_are_host", () => {
@@ -33,7 +50,7 @@ socket.on("you_are_host", () => {
     imageSelectorWrapper.style.display = "block";
     imageSelector.disabled = false;
 
-    activatePanel('cp');
+    activatePanel("cp");
 });
 
 socket.on("image_type_changed", ({ type }) => {
@@ -50,43 +67,66 @@ imageSelector.addEventListener("change", () => {
 
 function submitUsername() {
     const username = usernameInput.value.trim();
-    if (!username) {
-        showAlert("Vui lòng nhập tên của bạn", "warning");
-        return;
-    }
     savedUsername = username;
     socket.emit("join_viewer", { username });
 }
 
+// Xử lý sự kiện khi lỗi tên
 socket.on("username_error", (data) => {
     showAlert(data.message, "danger");
+    usernameInput.classList.add("shake");
+    setTimeout(() => {
+        usernameInput.classList.remove("shake");
+    }, 300);
 });
 
+// Khi đăng nhập thành công
 socket.on("join_success", () => {
     statusIndicator.classList.add("connected");
     statusText.textContent = `Connected as: ${savedUsername}`;
 
-    loginScreen.classList.remove("active");
-    viewerScreen.classList.add("active");
-    document.getElementById("page-footer").style.display = "block";
-
-    activatePanel('av');
+    loginScreen.classList.add("fade-out");
+    activatePanel("av");
     showAlert("🎉 Join success!", "success");
 
     if (!isHost) {
         imageSelectorWrapper.style.display = "block";
         imageSelector.disabled = true;
     }
+
+    const header = document.getElementById("top-header");
+    const footer = document.getElementById("page-footer");
+    const main = document.getElementById("main");
+
+    setTimeout(() => {
+        header.classList.add("hide-header-anim");
+        footer.classList.add("hide-footer-anim");
+    }, 50);
+
+    setTimeout(() => {
+        header.style.display = "none";
+        footer.style.display = "none";
+        main.classList.add("fullscreen");
+
+        setTimeout(() => {
+            viewerScreen.classList.add("active");
+            viewerScreen.classList.add("animate-viewscreen");
+            loginScreen.classList.remove("fade-out");
+            loginScreen.classList.remove("active");
+        }, 300);
+    }, 600);
 });
 
+// Viewer mới
 socket.on("new_viewer", (data) => {
     showAlert(`👋 ${data.name} vừa tham gia phiên xem`, "info");
 });
 
+// Danh sách viewer
 socket.on("viewer_list", (data) => {
     viewerCount.textContent = data.count;
     viewerList.innerHTML = "";
-    data.viewers.forEach(viewer => {
+    data.viewers.forEach((viewer) => {
         const li = document.createElement("li");
         const icon = document.createElement("div");
         icon.className = "viewer-icon";
@@ -115,25 +155,29 @@ socket.on("viewer_list", (data) => {
     });
 });
 
+// Khi nhận được frame từ broadcaster (chỉ dùng cho MJPEG stream base64)
 socket.on("image_frame", (data) => {
     video.src = "data:image/jpeg;base64," + data.image;
     video.style.display = "block";
     waiting.style.display = "none";
-    placeholder.style.display = "none";
+    videoPlaceholder.style.display = "none";
 });
 
+// Broadcaster rời đi
 socket.on("peer_disconnect", () => {
     video.style.display = "none";
-    placeholder.style.display = "flex";
+    videoPlaceholder.style.display = "block";
     waiting.style.display = "none";
 });
 
+// Chưa có broadcaster
 socket.on("no_broadcaster", () => {
     video.style.display = "none";
-    placeholder.style.display = "flex";
+    videoPlaceholder.style.display = "block";
     waiting.style.display = "flex";
 });
 
+// Trạng thái kết nối
 socket.on("connect", () => {
     console.log("[Viewer] connected:", socket.id);
     statusIndicator.classList.add("connected");
@@ -182,38 +226,8 @@ function showAlert(message, type = "danger") {
         setTimeout(() => {
             document.body.removeChild(alert);
         }, 300);
-    }, 3000);
+    }, 2000);
 }
-
-// Fullscreen toggle
-video.addEventListener("click", () => {
-    video.classList.toggle("fullscreen");
-    if (video.classList.contains("fullscreen")) {
-        const closeBtn = document.createElement("div");
-        closeBtn.textContent = "✕";
-        Object.assign(closeBtn.style, {
-            position: "fixed",
-            top: "20px",
-            right: "20px",
-            color: "white",
-            fontSize: "24px",
-            cursor: "pointer",
-            zIndex: "1001",
-            width: "40px",
-            height: "40px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: "rgba(255,255,255,0.2)",
-            borderRadius: "50%",
-        });
-        closeBtn.onclick = () => {
-            video.classList.remove("fullscreen");
-            document.body.removeChild(closeBtn);
-        };
-        document.body.appendChild(closeBtn);
-    }
-});
 
 // Panel toggle
 const btnCp = document.getElementById("btn-cp");
@@ -240,11 +254,15 @@ btnAv.addEventListener("click", () => activatePanel("av"));
 
 // Init
 window.addEventListener("load", () => {
-    usernameInput.focus();
     usernameInput.addEventListener("keydown", (event) => {
         if (event.key === "Enter") submitUsername();
     });
-    placeholder.style.display = "flex";
+
+    videoPlaceholder.style.display = "block";
     waiting.style.display = "none";
     video.style.display = "none";
+
+    document.getElementById("top-header").classList.add("animate-header");
+    document.getElementById("main").classList.add("animate-main");
+    document.getElementById("page-footer").classList.add("animate-footer");
 });

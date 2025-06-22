@@ -1,4 +1,5 @@
 import os
+import time
 import atexit
 import socketio
 import subprocess
@@ -168,7 +169,11 @@ ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 STATIC_DIR = os.path.join(ROOT_DIR, '..', 'view', 'static')
 
 async def index(request):
-    return web.FileResponse(path=os.path.join(STATIC_DIR, 'index.html'))
+    timestamp = str(int(time.time()))
+    html_path = os.path.join(STATIC_DIR, 'index.html')
+    with open(html_path, 'r', encoding='utf-8') as f:
+        html = f.read().replace("{{TIMESTAMP}}", timestamp)
+    return web.Response(text=html, content_type='text/html')
 
 app.router.add_get('/', index)
 app.router.add_static('/static/', path=STATIC_DIR, name='static')

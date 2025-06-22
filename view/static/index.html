@@ -4,7 +4,20 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>NDVI Drone Telemetry</title>
-    <link rel="stylesheet" href="/static/style.css" />
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="/static/css/root.css?v={{TIMESTAMP}}" />
+    <link rel="stylesheet" href="/static/css/layout.css?v={{TIMESTAMP}}" />
+    <link rel="stylesheet" href="/static/css/login.css?v={{TIMESTAMP}}" />
+    <link rel="stylesheet" href="/static/css/stream.css?v={{TIMESTAMP}}" />
+    <link rel="stylesheet" href="/static/css/sidebar.css?v={{TIMESTAMP}}" />
+    <link rel="stylesheet" href="/static/css/viewer.css?v={{TIMESTAMP}}" />
+    <link rel="stylesheet" href="/static/css/status.css?v={{TIMESTAMP}}" />
+    <link rel="stylesheet" href="/static/css/loader.css?v={{TIMESTAMP}}" />
+    <link rel="stylesheet" href="/static/css/responsive.css?v={{TIMESTAMP}}" />
+    <link rel="stylesheet" href="/static/css/effects.css?v={{TIMESTAMP}}" />
+
+    <!-- Google Fonts -->
     <link
       href="https://fonts.googleapis.com/css2?family=Poppins&display=swap"
       rel="stylesheet"
@@ -25,7 +38,7 @@
           alt="ViNDVI Logo"
           class="login-image"
         />
-        <div class="input-group">
+        <div class="input-group" id="input-group">
           <input type="text" id="username" placeholder="Enter your name" />
         </div>
         <button onclick="submitUsername()">Join</button>
@@ -37,24 +50,27 @@
       <!-- 🔶 Viewer screen -->
       <div id="viewer-screen" class="screen">
         <div class="stream-container">
-          <div class="video-placeholder" id="placeholder">
-            <div class="placeholder-icon">🌿</div>
-            <h3 class="placeholder-text">Waiting for NDVI drone connection</h3>
-            <p class="placeholder-text">
-              The system will display real-time vegetation analysis once the
-              broadcaster is connected
-            </p>
-          </div>
-          <img
+          <video
+            id="video-placeholder"
+            class="video-stream"
+            autoplay
+            muted
+            loop
+            playsinline
+          >
+            <source src="/static/imgs/placeholder.mp4" type="video/mp4" />
+          </video>
+
+          <video
             id="video"
-            src="/static/imgs/placeholder.jpg"
-            alt="NDVI Drone Feed"
+            class="video-stream"
+            autoplay
+            muted
+            playsinline
             style="display: none"
-          />
-          <div id="waiting" style="display: none">
-            <div class="loader"></div>
-            <span>Waiting for broadcaster signal...</span>
-          </div>
+          >
+            <source src="" type="video/mp4" />
+          </video>
         </div>
 
         <!-- 🔷 SIDEBAR -->

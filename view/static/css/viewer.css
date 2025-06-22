@@ -1,0 +1,94 @@
+#viewer-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #f9f9f9;
+    border-radius: 12px;
+    padding: 12px;
+    overflow: hidden;
+    min-height: 0;
+}
+
+.viewer-header {
+    flex-shrink: 0;
+    margin-bottom: 10px;
+}
+
+#viewer-list {
+    margin-top: auto;
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    max-height: 100%;
+    flex-grow: 1;
+    cursor: pointer;
+}
+
+#viewer-list li {
+    padding: 10px 15px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.2s ease;
+}
+
+#viewer-list li:hover {
+    background: #e9ecef;
+    transform: translateX(3px);
+}
+
+.viewer-icon {
+    width: 24px;
+    height: 24px;
+    background: var(--primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 12px;
+}
+
+#info-panel {
+    flex: 1;
+    margin-top: 10px;
+    padding: 10px;
+    background: #f1f3f5;
+    border-radius: 12px;
+    font-size: 14px;
+    color: var(--gray);
+}
+
+.cp-group {
+    margin-bottom: 20px;
+}
+
+.cp-label {
+    font-weight: 500;
+    font-size: 15px;
+    color: var(--dark);
+    margin-bottom: 6px;
+    display: block;
+}
+
+.cp-select {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    background-color: #f9f9f9;
+    font-size: 14px;
+    transition: border 0.2s ease;
+}
+
+.cp-select:focus {
+    outline: none;
+    border-color: var(--primary);
+    background-color: white;
+    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.2);
+}
