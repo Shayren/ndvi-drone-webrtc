@@ -62,7 +62,20 @@ socket.on("host_updated", (data) => {
     updateHostUI(isHost);
 });
 
+
+function updateImageSelectorAccess() {
+    if (!isHost) {
+        imageChoices.disable();
+        imageSelector.title = "Chỉ host mới có thể thay đổi loại ảnh";
+    } else {
+        imageChoices.enable();
+        imageSelector.title = "";
+    }
+}
+
 function updateHostUI(isHostNow) {
+    isHost = isHostNow;
+    updateImageSelectorAccess();
     activatePanel("av");
 
     if (isHostNow) {
@@ -101,7 +114,11 @@ socket.on("broadcaster_connected", () => {
 });
 
 socket.on("image_type_changed", ({ type }) => {
-    imageSelector.value = type;
+    if (imageChoices) {
+        imageChoices.setChoiceByValue(type);
+    } else {
+        imageSelector.value = type; // fallback nếu Choices chưa được khởi tạo
+    }
 });
 
 imageSelector.addEventListener("change", () => {
@@ -134,6 +151,7 @@ socket.on("join_success", () => {
     loginScreen.classList.add("fade-out");
 
     showAlert("🎉 Join success!", "success");
+    updateImageSelectorAccess();
 
     if (!isHost) {
         imageSelectorWrapper.style.display = "block";
@@ -174,7 +192,8 @@ socket.on("viewer_list", ({ viewers, count, hostId }) => {
     viewerList.innerHTML = "";
 
     // Cập nhật lại trạng thái host
-    isHost = (socket.id === hostId); // 👈 dòng này quan trọng!
+    isHost = (socket.id === hostId);
+    updateImageSelectorAccess();
 
     viewers.forEach((viewer) => {
         const li = document.createElement("li");
@@ -343,7 +362,14 @@ btnCp.addEventListener("click", () => activatePanel("cp"));
 btnAv.addEventListener("click", () => activatePanel("av"));
 
 // Init
+let imageChoices;
 window.addEventListener("load", () => {
+    imageChoices = new Choices("#image-type", {
+        searchEnabled: false,
+        itemSelectText: "",
+        shouldSort: false,
+    });
+
     usernameInput.addEventListener("keydown", (event) => {
         if (event.key === "Enter") submitUsername();
     });
