@@ -1,10 +1,11 @@
 #login-screen {
     width: 90%;
+    height: 95%;
     max-width: 600px;
     padding: 2rem;
     background: rgba(255, 255, 255, 0.6);
     backdrop-filter: blur(8px);
-    border-radius: 25px;
+    border-radius: 1%;
     box-shadow: 0 0px 10px rgba(0, 0, 0, 0.4);
     box-sizing: border-box;
     text-align: center;
@@ -72,4 +73,38 @@ button:hover {
 
 button:active {
     transform: translateY(0);
+}
+
+.floating-input {
+    position: relative;
+    width: 80%;
+    margin-bottom: 20px;
+}
+
+.floating-input input[type="text"] {
+    width: 100%;
+    padding: 20px 20px 10px 20px;
+    font-size: 16px;
+    border-radius: 15px;
+    border: 1px solid #e1e5eb;
+    background: #f8f9fa;
+    transition: all 0.3s ease;
+}
+
+.floating-input label {
+    position: absolute;
+    top: 50%;
+    left: 20px;
+    transform: translateY(-50%);
+    color: #888;
+    font-size: 16px;
+    pointer-events: none;
+    transition: all 0.3s ease;
+}
+
+.floating-input input:focus+label,
+.floating-input input:not(:placeholder-shown):valid+label {
+    top: 12px;
+    font-size: 12px;
+    color: var(--primary-dark);
 }

@@ -13,7 +13,7 @@
 }
 
 .sidebar-title {
-    font-size: 18px;
+    font-size: 22px;
     font-weight: 600;
     color: var(--dark);
     margin-bottom: 15px;
@@ -27,6 +27,16 @@
     justify-content: center;
     gap: 12px;
     margin-bottom: 20px;
+}
+
+#sidebar:hover {
+    transform: scale(1.01);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35), 0 0 20px rgba(2, 132, 199, 0.25);
+    transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+
+#sidebar {
+    transition: transform 0.4s ease, box-shadow 0.4s ease;
 }
 
 .toggle-btn {
@@ -76,12 +86,18 @@
     fill: white;
 }
 
-#sidebar:hover {
-    transform: scale(1.01);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35), 0 0 20px rgba(2, 132, 199, 0.25);
-    transition: transform 0.4s ease, box-shadow 0.4s ease;
+.transfer-btn {
+    margin-left: 1rem;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    background-color: #facc15;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s;
+    display: inline-block;
 }
 
-#sidebar {
-    transition: transform 0.4s ease, box-shadow 0.4s ease;
+.transfer-btn:hover {
+    background-color: #fbbf24;
 }

@@ -16,6 +16,11 @@
     <link rel="stylesheet" href="/static/css/loader.css?v={{TIMESTAMP}}" />
     <link rel="stylesheet" href="/static/css/responsive.css?v={{TIMESTAMP}}" />
     <link rel="stylesheet" href="/static/css/effects.css?v={{TIMESTAMP}}" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
 
     <!-- Google Fonts -->
     <link
@@ -24,121 +29,131 @@
     />
   </head>
   <body>
-    <!-- 🔷 HEADER -->
-    <header id="top-header">
-      <img src="/static/imgs/logo-name.png" alt="Logo" id="logo" />
-    </header>
+    <div id="layout-vertical">
+      <!-- 🔷 HEADER -->
+      <header id="top-header">
+        <img src="/static/imgs/logo-name.png" alt="Logo" id="logo" />
+      </header>
 
-    <!-- 📦 MAIN CONTENT -->
-    <div id="main">
-      <!-- 🔶 Login screen -->
-      <div id="login-screen" class="screen active">
-        <img
-          src="/static/imgs/login-title.png"
-          alt="ViNDVI Logo"
-          class="login-image"
-        />
-        <div class="input-group" id="input-group">
-          <input type="text" id="username" placeholder="Enter your name" />
-        </div>
-        <button onclick="submitUsername()">Join</button>
-        <div id="status">
-          <div class="status-indicator"></div>
-          <span>No connection with server</span>
-        </div>
-      </div>
-      <!-- 🔶 Viewer screen -->
-      <div id="viewer-screen" class="screen">
-        <div class="stream-container">
-          <video
-            id="video-placeholder"
-            class="video-stream"
-            autoplay
-            muted
-            loop
-            playsinline
-          >
-            <source src="/static/imgs/placeholder.mp4" type="video/mp4" />
-          </video>
-
-          <video
-            id="video"
-            class="video-stream"
-            autoplay
-            muted
-            playsinline
-            style="display: none"
-          >
-            <source src="" type="video/mp4" />
-          </video>
-        </div>
-
-        <!-- 🔷 SIDEBAR -->
-        <div id="sidebar">
-          <!-- Toggle Icons -->
-          <div id="sidebar-toggle">
-            <button id="btn-av" class="toggle-btn active" title="Viewers">
-              <svg viewBox="0 0 24 24" class="icon">
-                <path
-                  d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5C15 14.17 10.33 13 8 13zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"
-                />
-              </svg>
-            </button>
-            <button id="btn-cp" class="toggle-btn" title="Control Panel">
-              <svg viewBox="0 0 24 24" class="icon">
-                <path
-                  d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8v-10h-8v10zm0-18v6h8V3h-8z"
-                />
-              </svg>
-            </button>
+      <!-- 📦 MAIN CONTENT -->
+      <div id="main">
+        <!-- 🔶 Login screen -->
+        <div id="login-screen" class="screen active">
+          <img
+            src="/static/imgs/login-title.png"
+            alt="ViNDVI Logo"
+            class="login-image"
+          />
+          <div class="floating-input">
+            <input type="text" id="username" required />
+            <label for="username">Enter your name</label>
           </div>
+          <button onclick="submitUsername()">Join</button>
+          <div id="status">
+            <div class="status-indicator"></div>
+            <span>No connection with server</span>
+          </div>
+        </div>
+        <!-- 🔶 Viewer screen -->
+        <div id="viewer-screen" class="screen">
+          <div class="stream-container">
+            <video
+              id="video-placeholder"
+              class="video-stream"
+              autoplay
+              muted
+              loop
+              playsinline
+            >
+              <source src="/static/imgs/placeholder.mp4" type="video/mp4" />
+            </video>
 
-          <!-- Content Panels -->
-          <div id="panel-cp" class="sidebar-panel">
-            <h3 class="sidebar-title">Control Panel</h3>
-
-            <div
-              id="image-selector-wrapper"
-              class="cp-group"
+            <video
+              id="video"
+              class="video-stream"
+              autoplay
+              muted
+              playsinline
               style="display: none"
             >
-              <label for="image-type" class="cp-label">Image Type</label>
-              <select id="image-type" class="cp-select">
-                <option value="default">Default</option>
-                <option value="nir">NIR</option>
-                <option value="ndvi">NDVI</option>
-              </select>
-            </div>
+              <source src="" type="video/mp4" />
+            </video>
           </div>
 
-          <div id="panel-av" class="sidebar-panel" style="display: none">
-            <div class="viewer-header">
-              <h3 class="sidebar-title">
-                <span>Active Viewers</span>
-                <span id="viewer-count"> 0 </span>
-              </h3>
+          <!-- 🔷 SIDEBAR -->
+          <div id="sidebar">
+            <!-- Toggle Icons -->
+            <div id="sidebar-toggle">
+              <button id="btn-av" class="toggle-btn active" title="Viewers">
+                <svg viewBox="0 0 24 24" class="icon">
+                  <path
+                    d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5C15 14.17 10.33 13 8 13zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"
+                  />
+                </svg>
+              </button>
+              <button id="btn-cp" class="toggle-btn" title="Control Panel">
+                <svg viewBox="0 0 24 24" class="icon">
+                  <path
+                    d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8v-10h-8v10zm0-18v6h8V3h-8z"
+                  />
+                </svg>
+              </button>
             </div>
-            <ul id="viewer-list"></ul>
+
+            <!-- Content Panels -->
+            <div id="panel-cp" class="sidebar-panel">
+              <h3 class="sidebar-title">Control Panel</h3>
+
+              <div
+                id="image-selector-wrapper"
+                class="cp-group"
+                style="display: none"
+              >
+                <label for="image-type" class="cp-label">Image Type</label>
+                <select id="image-type" class="cp-select">
+                  <option value="default">Default</option>
+                  <option value="nir">NIR</option>
+                  <option value="ndvi">NDVI</option>
+                </select>
+                <script>
+                  new Choices("#image-type", {
+                    searchEnabled: false,
+                    itemSelectText: "",
+                    shouldSort: false,
+                  });
+                </script>
+              </div>
+            </div>
+
+            <div id="panel-av" class="sidebar-panel" style="display: none">
+              <div class="viewer-header">
+                <h3 class="sidebar-title">
+                  <span>Active Viewers</span>
+                  <span id="viewer-count"> 0 </span>
+                </h3>
+              </div>
+              <ul id="viewer-list"></ul>
+            </div>
           </div>
         </div>
       </div>
+
+      <!-- 🔻 FOOTER -->
+      <footer id="page-footer">
+        <div class="footer-content">
+          <strong>Graduation Thesis</strong><br />
+          <em
+            >Design and Implementation of a Drone System for Aerial NDVI
+            Imagingand Remote Visualization</em
+          ><br />
+          Faculty of Electronics and Telecommunications – University of
+          Technology and Engineering
+        </div>
+      </footer>
+
+      <!-- Scripts -->
+      <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+      <script src="/static/script.js"></script>
     </div>
-
-    <!-- 🔻 FOOTER -->
-    <footer id="page-footer">
-      <div class="footer-content">
-        <strong>Graduation Thesis</strong><br />
-        <em>
-          Design and Implementation of a Drone System for Aerial NDVI Imaging
-          and Remote Visualization </em
-        ><br />
-        Faculty of Electronics and Telecommunications – University of Technology
-        and Engineering
-      </div>
-    </footer>
-
-    <!-- Scripts -->
-    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-    <script src="/static/script.js"></script>
   </body>
 </html>

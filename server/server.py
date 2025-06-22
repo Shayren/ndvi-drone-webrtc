@@ -46,8 +46,8 @@ async def disconnect(sid):
         if remaining:
             host_sid = remaining[0]
             print(f"[SERVER] Chuyển quyền host cho {viewer_names[host_sid]}")
-            
-            await sio.emit("you_are_host", {}, room=host_sid)
+
+            await sio.emit("host_updated", {"hostId": host_sid})
             await sio.emit("image_type_changed", {"type": current_image_type}, room=host_sid)
         else:
             host_sid = None
@@ -61,19 +61,35 @@ async def join_broadcaster(sid):
     broadcasters.add(sid)
     print(f"[BROADCASTER] {sid} joined")
 
-    # Thông báo broadcaster đã kết nối tới viewer
     for viewer_sid in viewer_names:
         await sio.emit("broadcaster_connected", {}, room=viewer_sid)
 
-    # Ghép các viewer đang chờ (gồm cả host nếu host là người join đầu)
     for viewer_sid in list(pending_viewers):
         peers[viewer_sid] = sid
         await sio.emit('viewer_joined', {'viewer_id': viewer_sid}, room=sid)
         print(f"[SERVER] Pending viewer {viewer_sid} paired → broadcaster {sid}")
         pending_viewers.remove(viewer_sid)
 
-    # Gửi type hiện tại
     await sio.emit("image_type_changed", {"type": current_image_type}, room=sid)
+
+@sio.event
+async def transfer_host(sid, data):
+    target_id = data.get("targetId")
+    global host_sid
+
+    if sid != host_sid:
+        print("❌ Không phải host nên không được chuyển quyền.")
+        return
+
+    if not target_id or target_id not in viewer_names:
+        print("❌ target không hợp lệ")
+        return
+
+    host_sid = target_id
+    print(f"[HOST TRANSFERRED] New host: {viewer_names[host_sid]}")
+
+    await sio.emit("host_updated", {"hostId": host_sid})
+    await broadcast_viewer_list()
 
 @sio.event
 async def join_viewer(sid, data):
@@ -98,12 +114,12 @@ async def join_viewer(sid, data):
     if host_sid is None:
         host_sid = sid
         print(f"[SERVER] Viewer '{username}' được đánh dấu là HOST")
-        await sio.emit("you_are_host", {}, room=sid)
-        # await sio.emit("image_type_changed", {"type": current_image_type}, room=sid)
-        print(f"[SERVER] Đã gửi you_are_host tới {sid}")
+        await sio.emit("host_updated", {"hostId": host_sid})
+        await sio.emit("image_type_changed", {"type": current_image_type}, room=sid)
+        print(f"[SERVER] Đã gửi host_updated tới {sid}")
 
     print(f"[VIEWER] {sid} joined as '{username}'")
-    
+
     await sio.emit('join_success', {}, room=sid)
     print(f"[SERVER] Đã emit join_success cho {sid}")
 
@@ -142,13 +158,11 @@ async def change_image_type(sid, data):
 
     current_image_type = img_type
 
-    # Gửi cho broadcaster duy nhất
     broadcaster_sid = next(iter(broadcasters), None)
     if broadcaster_sid:
         print(f"[SERVER] Gửi image_type_changed tới broadcaster: {broadcaster_sid}")
         await sio.emit("image_type_changed", {"type": img_type}, room=broadcaster_sid)
 
-    # Gửi cho toàn bộ viewer để cập nhật giao diện
     for viewer_sid in viewer_names:
         await sio.emit("image_type_changed", {"type": img_type}, room=viewer_sid)
 
@@ -156,13 +170,14 @@ async def change_image_type(sid, data):
 
 async def broadcast_viewer_list():
     viewers = [
-        {"name": name, "is_host": (sid == host_sid)}
+        {"id": sid, "name": name, "is_host": (sid == host_sid)}
         for sid, name in viewer_names.items()
     ]
     for vsid in joined_viewers:
         await sio.emit('viewer_list', {
             'count': len(viewers),
-            'viewers': viewers
+            'viewers': viewers,
+            'hostId': host_sid
         }, room=vsid)
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))

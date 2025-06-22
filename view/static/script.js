@@ -20,6 +20,64 @@ const imageSelector = document.getElementById("image-type");
 
 let isHost = false;
 let savedUsername = "";
+let alertActive = false;
+const alertQueue = [];
+
+function updateViewerList(viewers, currentHostId, myId) {
+    const list = document.getElementById("viewer-list");
+    list.innerHTML = "";
+
+    viewers.forEach((viewer) => {
+        const li = document.createElement("li");
+        li.textContent = viewer.name;
+
+        // Nếu mình là host và đây là người khác, thì có thể nhấn để nhượng quyền
+        if (myId === currentHostId && viewer.id !== myId) {
+            li.style.cursor = "pointer";
+            li.title = "Click to transfer host";
+            li.onclick = () => {
+                const confirmTransfer = confirm(
+                    `Transfer host role to ${viewer.name}?`
+                );
+                if (confirmTransfer) {
+                    socket.emit("transfer_host", { targetId: viewer.id });
+                }
+            };
+        }
+
+        // Đánh dấu host hiện tại
+        if (viewer.id === currentHostId) {
+            li.style.fontWeight = "bold";
+            li.textContent += " (Host)";
+        }
+
+        list.appendChild(li);
+    });
+}
+
+socket.on("host_updated", (data) => {
+    const newHostId = data.hostId;
+    isHost = (socket.id === newHostId);
+    console.log("[CLIENT] Host_update");
+    updateHostUI(isHost);
+});
+
+function updateHostUI(isHostNow) {
+    activatePanel("av");
+
+    if (isHostNow) {
+        imageSelectorWrapper.style.display = "block";
+        imageSelector.disabled = false;
+        showAlert("🎖️ Bạn là Host mới", "info");
+
+        setTimeout(() => {
+            activatePanel("cp");
+        }, 2300);
+    } else {
+        imageSelectorWrapper.style.display = "block";
+        imageSelector.disabled = true;
+    }
+}
 
 // Fullscreen toggle for both videos
 [video, videoPlaceholder].forEach((vid) => {
@@ -40,17 +98,6 @@ socket.on("broadcaster_connected", () => {
     waiting.style.display = "none";
     videoPlaceholder.style.display = "none";
     video.style.display = "block";
-});
-
-socket.on("you_are_host", () => {
-    console.log("[CLIENT] You are host!");
-    isHost = true;
-
-    document.getElementById("panel-cp").style.display = "block";
-    imageSelectorWrapper.style.display = "block";
-    imageSelector.disabled = false;
-
-    activatePanel("cp");
 });
 
 socket.on("image_type_changed", ({ type }) => {
@@ -80,13 +127,12 @@ socket.on("username_error", (data) => {
     }, 300);
 });
 
-// Khi đăng nhập thành công
 socket.on("join_success", () => {
     statusIndicator.classList.add("connected");
     statusText.textContent = `Connected as: ${savedUsername}`;
 
     loginScreen.classList.add("fade-out");
-    activatePanel("av");
+
     showAlert("🎉 Join success!", "success");
 
     if (!isHost) {
@@ -123,10 +169,14 @@ socket.on("new_viewer", (data) => {
 });
 
 // Danh sách viewer
-socket.on("viewer_list", (data) => {
-    viewerCount.textContent = data.count;
+socket.on("viewer_list", ({ viewers, count, hostId }) => {
+    viewerCount.textContent = count;
     viewerList.innerHTML = "";
-    data.viewers.forEach((viewer) => {
+
+    // Cập nhật lại trạng thái host
+    isHost = (socket.id === hostId); // 👈 dòng này quan trọng!
+
+    viewers.forEach((viewer) => {
         const li = document.createElement("li");
         const icon = document.createElement("div");
         icon.className = "viewer-icon";
@@ -147,6 +197,18 @@ socket.on("viewer_list", (data) => {
             star.style.color = "#ffc107";
             star.title = "Host";
             nameSpan.appendChild(star);
+        }
+
+        // Nếu là host và viewer khác bạn thì có thể nhấn để chuyển quyền
+        if (isHost && viewer.name !== savedUsername) {
+            li.style.cursor = "pointer";
+            li.title = `Nhấn để nhượng quyền host cho ${viewer.name}`;
+            li.onclick = () => {
+                const ok = confirm(`Bạn có chắc muốn nhượng quyền host cho ${viewer.name}?`);
+                if (ok) {
+                    socket.emit("transfer_host", { targetId: viewer.id });
+                }
+            };
         }
 
         li.appendChild(icon);
@@ -187,6 +249,9 @@ socket.on("connect", () => {
 socket.on("disconnect", () => {
     statusIndicator.classList.remove("connected");
     statusText.textContent = "Connection lost - Reconnecting...";
+    document.getElementById("top-header").classList.remove("animate-header");
+    document.getElementById("main").classList.remove("animate-main");
+    document.getElementById("page-footer").classList.remove("animate-footer");
 });
 
 socket.on("re_authenticate", () => {
@@ -197,7 +262,21 @@ socket.on("re_authenticate", () => {
 });
 
 function showAlert(message, type = "danger") {
-    console.log(`[showAlert] type: ${type}, message: ${message}`);
+    alertQueue.push({ message, type });
+    if (!alertActive) {
+        processNextAlert();
+    }
+}
+
+function processNextAlert() {
+    if (alertQueue.length === 0) {
+        alertActive = false;
+        return;
+    }
+
+    alertActive = true;
+    const { message, type } = alertQueue.shift();
+
     const alert = document.createElement("div");
     alert.style.position = "fixed";
     alert.style.top = "20px";
@@ -225,6 +304,7 @@ function showAlert(message, type = "danger") {
         alert.style.opacity = "0";
         setTimeout(() => {
             document.body.removeChild(alert);
+            processNextAlert(); // ✅ Hiển thị alert tiếp theo
         }, 300);
     }, 2000);
 }
@@ -236,17 +316,27 @@ const panelCp = document.getElementById("panel-cp");
 const panelAv = document.getElementById("panel-av");
 
 function activatePanel(type) {
-    if (type === "cp") {
-        panelCp.style.display = "block";
-        panelAv.style.display = "none";
-        btnCp.classList.add("active");
-        btnAv.classList.remove("active");
-    } else {
-        panelCp.style.display = "none";
-        panelAv.style.display = "block";
-        btnCp.classList.remove("active");
-        btnAv.classList.add("active");
-    }
+    const panelCp = document.getElementById("panel-cp");
+    const panelAv = document.getElementById("panel-av");
+
+    const toHide = (type === "cp") ? panelAv : panelCp;
+    const toShow = (type === "cp") ? panelCp : panelAv;
+
+    btnCp.classList.toggle("active", type === "cp");
+    btnAv.classList.toggle("active", type === "av");
+
+    // Ẩn panel hiện tại với hiệu ứng
+    toHide.classList.remove("fade-in-panel");
+    toHide.classList.add("fade-out-panel");
+
+    setTimeout(() => {
+        toHide.style.display = "none";
+
+        // Hiện panel mới
+        toShow.style.display = "block";
+        toShow.classList.remove("fade-out-panel");
+        toShow.classList.add("fade-in-panel");
+    }, 300); // trễ 1 chút để chờ fadeOut chạy xong
 }
 
 btnCp.addEventListener("click", () => activatePanel("cp"));
@@ -261,8 +351,20 @@ window.addEventListener("load", () => {
     videoPlaceholder.style.display = "block";
     waiting.style.display = "none";
     video.style.display = "none";
-
-    document.getElementById("top-header").classList.add("animate-header");
-    document.getElementById("main").classList.add("animate-main");
-    document.getElementById("page-footer").classList.add("animate-footer");
 });
+
+const header = document.getElementById("top-header");
+const main = document.getElementById("main");
+const footer = document.getElementById("page-footer");
+
+header.classList.remove("animate-header");
+main.classList.remove("animate-main");
+footer.classList.remove("animate-footer");
+
+void header.offsetWidth;
+void main.offsetWidth;
+void footer.offsetWidth;
+
+header.classList.add("animate-header");
+main.classList.add("animate-main");
+footer.classList.add("animate-footer");

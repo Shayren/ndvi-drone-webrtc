@@ -38,8 +38,7 @@
 }
 
 #viewer-list li:hover {
-    background: #e9ecef;
-    transform: translateX(3px);
+    background: #d5d5d5;
 }
 
 .viewer-icon {
@@ -77,13 +76,14 @@
 }
 
 .cp-select {
-    width: 100%;
+    width: 60%;
     padding: 10px 14px;
     border-radius: 10px;
     border: 1px solid #ccc;
     background-color: #f9f9f9;
     font-size: 14px;
     transition: border 0.2s ease;
+    cursor: pointer;
 }
 
 .cp-select:focus {
