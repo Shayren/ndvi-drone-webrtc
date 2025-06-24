@@ -139,13 +139,6 @@ footer {
 /* ========== SCREEN ========== */
 .screen {
     display: none;
-    flex: 1;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 90%;
-    max-width: 1400px;
-    margin: 0 auto;
 }
 
 .screen.active {

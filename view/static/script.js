@@ -31,7 +31,6 @@ function updateViewerList(viewers, currentHostId, myId) {
         const li = document.createElement("li");
         li.textContent = viewer.name;
 
-        // Nếu mình là host và đây là người khác, thì có thể nhấn để nhượng quyền
         if (myId === currentHostId && viewer.id !== myId) {
             li.style.cursor = "pointer";
             li.title = "Click to transfer host";
@@ -64,6 +63,7 @@ socket.on("host_updated", (data) => {
 
 
 function updateImageSelectorAccess() {
+
     if (!isHost) {
         imageChoices.disable();
         imageSelector.title = "Chỉ host mới có thể thay đổi loại ảnh";
@@ -76,7 +76,6 @@ function updateImageSelectorAccess() {
 function updateHostUI(isHostNow) {
     isHost = isHostNow;
     updateImageSelectorAccess();
-    activatePanel("av");
 
     if (isHostNow) {
         imageSelectorWrapper.style.display = "block";
@@ -151,9 +150,9 @@ socket.on("join_success", () => {
     loginScreen.classList.add("fade-out");
 
     showAlert("🎉 Join success!", "success");
-    updateImageSelectorAccess();
 
     if (!isHost) {
+        activatePanel("av");
         imageSelectorWrapper.style.display = "block";
         imageSelector.disabled = true;
     }
@@ -239,8 +238,8 @@ socket.on("viewer_list", ({ viewers, count, hostId }) => {
 // Khi nhận được frame từ broadcaster (chỉ dùng cho MJPEG stream base64)
 socket.on("image_frame", (data) => {
     video.src = "data:image/jpeg;base64," + data.image;
-    video.style.display = "block";
     waiting.style.display = "none";
+    video.style.display = "block";
     videoPlaceholder.style.display = "none";
 });
 
@@ -344,14 +343,12 @@ function activatePanel(type) {
     btnCp.classList.toggle("active", type === "cp");
     btnAv.classList.toggle("active", type === "av");
 
-    // Ẩn panel hiện tại với hiệu ứng
     toHide.classList.remove("fade-in-panel");
     toHide.classList.add("fade-out-panel");
 
     setTimeout(() => {
         toHide.style.display = "none";
 
-        // Hiện panel mới
         toShow.style.display = "block";
         toShow.classList.remove("fade-out-panel");
         toShow.classList.add("fade-in-panel");
