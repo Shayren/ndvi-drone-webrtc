@@ -131,9 +131,12 @@ async def join_viewer(sid, data):
     await broadcast_viewer_list()
 
     for broadcaster_sid in broadcasters:
-        if broadcaster_sid in sio.manager.rooms['/']:
+        # Kiểm tra broadcaster đang hoạt động bằng cách dùng sio.manager.is_connected()
+        if sio.manager.is_connected(broadcaster_sid, '/'):
             peers[sid] = broadcaster_sid
             await sio.emit('viewer_joined', {'viewer_id': sid}, room=broadcaster_sid)
+            print(f"[DEBUG] Đã gửi viewer_joined từ server đến broadcaster {broadcaster_sid}")
+            print(f"[SERVER] Viewer {sid} paired to broadcaster {broadcaster_sid}")
             return
 
     pending_viewers.add(sid)

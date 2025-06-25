@@ -9,7 +9,7 @@ const status = document.getElementById("status");
 const statusIndicator = status.querySelector(".status-indicator");
 const statusText = status.querySelector("span");
 
-const video = document.getElementById("video");
+const streamImg = document.getElementById("stream-img");
 const videoPlaceholder = document.getElementById("video-placeholder");
 const waiting = document.getElementById("waiting");
 
@@ -57,10 +57,13 @@ function updateViewerList(viewers, currentHostId, myId) {
 socket.on("host_updated", (data) => {
     const newHostId = data.hostId;
     isHost = (socket.id === newHostId);
-    console.log("[CLIENT] Host_update");
+    console.log("[CLIENT] Host_update: ", newHostId, isHost);
     updateHostUI(isHost);
 });
 
+function safeDisplay(el, display = "block") {
+    if (el) el.style.display = display;
+}
 
 function updateImageSelectorAccess() {
 
@@ -92,7 +95,7 @@ function updateHostUI(isHostNow) {
 }
 
 // Fullscreen toggle for both videos
-[video, videoPlaceholder].forEach((vid) => {
+[streamImg, videoPlaceholder].forEach((vid) => {
     vid.addEventListener("click", () => {
         if (!document.fullscreenElement) {
             vid.requestFullscreen().catch((err) =>
@@ -107,9 +110,9 @@ function updateHostUI(isHostNow) {
 // Broadcaster connected
 socket.on("broadcaster_connected", () => {
     console.log("📡 Broadcaster đã kết nối");
-    waiting.style.display = "none";
-    videoPlaceholder.style.display = "none";
-    video.style.display = "block";
+    safeDisplay(waiting, "none");
+    safeDisplay(streamImg, "block");
+    safeDisplay(videoPlaceholder, "none");
 });
 
 socket.on("image_type_changed", ({ type }) => {
@@ -237,24 +240,24 @@ socket.on("viewer_list", ({ viewers, count, hostId }) => {
 
 // Khi nhận được frame từ broadcaster (chỉ dùng cho MJPEG stream base64)
 socket.on("image_frame", (data) => {
-    video.src = "data:image/jpeg;base64," + data.image;
-    waiting.style.display = "none";
-    video.style.display = "block";
-    videoPlaceholder.style.display = "none";
+    streamImg.src = "data:image/jpeg;base64," + data.image;
+    safeDisplay(waiting, "none");
+    safeDisplay(streamImg, "block");
+    safeDisplay(videoPlaceholder, "none");
 });
 
 // Broadcaster rời đi
 socket.on("peer_disconnect", () => {
-    video.style.display = "none";
-    videoPlaceholder.style.display = "block";
-    waiting.style.display = "none";
+    safeDisplay(waiting, "none");
+    safeDisplay(streamImg, "none");
+    safeDisplay(videoPlaceholder, "block");
 });
 
 // Chưa có broadcaster
 socket.on("no_broadcaster", () => {
-    video.style.display = "none";
-    videoPlaceholder.style.display = "block";
-    waiting.style.display = "flex";
+    safeDisplay(waiting, "flex");
+    safeDisplay(streamImg, "none");
+    safeDisplay(videoPlaceholder, "block");
 });
 
 // Trạng thái kết nối
@@ -371,9 +374,9 @@ window.addEventListener("load", () => {
         if (event.key === "Enter") submitUsername();
     });
 
-    videoPlaceholder.style.display = "block";
-    waiting.style.display = "none";
-    video.style.display = "none";
+    safeDisplay(waiting, "none");
+    safeDisplay(streamImg, "none");
+    safeDisplay(videoPlaceholder, "block");
 });
 
 const header = document.getElementById("top-header");

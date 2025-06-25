@@ -33,6 +33,7 @@ async def connect():
 
 @sio.event
 async def viewer_joined(data):
+    print(f"[DEBUG] viewer_joined triggered with data: {data}")
     viewer_id = data['viewer_id']
     connected_viewers.add(viewer_id)
     print(f"[BROADCASTER] Viewer joined: {viewer_id}")
@@ -59,15 +60,15 @@ def on_image_type_changed(data):
         print(f"[BROADCASTER] Loại ảnh không hợp lệ: {img_type}")
 
 async def send_frames():
+    print("[DEBUG] send_frames() started")
     while connected_viewers:
         b64 = get_current_frame()
         await sio.emit("image_frame", {"image": b64})
-        await asyncio.sleep(0.2)  # 5 FPS
-
+        await asyncio.sleep(0.2)
     print("[BROADCASTER] Stop sending frames (no viewer)")
 
 async def main():
-    await sio.connect("http://localhost:5000")  # hoặc ngrok URL
+    await sio.connect("http://localhost:5000")
     await sio.wait()
 
 asyncio.run(main())
