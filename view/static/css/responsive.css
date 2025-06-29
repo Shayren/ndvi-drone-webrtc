@@ -9,6 +9,22 @@
     #main {
         padding: 0px;
     }
+
+    .sidebar-title {
+        font-size: 20px;
+    }
+
+    #page-footer {
+        font-size: 15px;
+    }
+
+    #login-screen {
+        height: 90%;
+    }
+
+    .login-image {
+        width: 50%;
+    }
 }
 
 /* Nothing Phone 1 */

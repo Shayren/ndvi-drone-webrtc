@@ -2,6 +2,7 @@ import socketio
 import base64
 import asyncio
 import cv2
+import time
 
 sio = socketio.AsyncClient()
 connected_viewers = set()
@@ -22,8 +23,14 @@ for k, img in images.items():
 
 def get_current_frame():
     img = images.get(current_image_type, images["default"])
-    _, buffer = cv2.imencode(".jpg", img)
+    
+    height, width = img.shape[:2]
+    img = cv2.resize(img, (width // 2, height // 2))
+    
+    encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 100]
+    _, buffer = cv2.imencode(".jpg", img, encode_param)
     b64_frame = base64.b64encode(buffer).decode('utf-8')
+    
     return b64_frame
 
 @sio.event
@@ -33,10 +40,10 @@ async def connect():
 
 @sio.event
 async def viewer_joined(data):
-    print(f"[DEBUG] viewer_joined triggered with data: {data}")
     viewer_id = data['viewer_id']
     connected_viewers.add(viewer_id)
     print(f"[BROADCASTER] Viewer joined: {viewer_id}")
+
     global send_task
     if send_task is None or send_task.done():
         print("[BROADCASTER] Start sending frames")
@@ -45,9 +52,16 @@ async def viewer_joined(data):
 @sio.event
 async def peer_disconnect(data):
     viewer_id = data['from']
+    global send_task
+
     if viewer_id in connected_viewers:
         connected_viewers.remove(viewer_id)
         print(f"[BROADCASTER] Viewer disconnected: {viewer_id}")
+
+    if not connected_viewers:
+        if send_task and not send_task.done():
+            send_task.cancel()
+            print("[BROADCASTER] Tất cả viewers đã rời đi. Dừng gửi frame.")
 
 @sio.on("image_type_changed")
 def on_image_type_changed(data):
@@ -61,11 +75,17 @@ def on_image_type_changed(data):
 
 async def send_frames():
     print("[DEBUG] send_frames() started")
-    while connected_viewers:
-        b64 = get_current_frame()
-        await sio.emit("image_frame", {"image": b64})
-        await asyncio.sleep(0.2)
-    print("[BROADCASTER] Stop sending frames (no viewer)")
+    try:
+        while True:
+            if not connected_viewers:
+                print("[BROADCASTER] Không còn viewer nào, thoát vòng lặp send_frames")
+                break
+
+            b64 = get_current_frame()
+            await sio.emit("image_frame", {"image": b64})
+            await asyncio.sleep(0.2)
+    except asyncio.CancelledError:
+        print("[BROADCASTER] send_frames() bị huỷ (cancelled)")
 
 async def main():
     await sio.connect("http://localhost:5000")

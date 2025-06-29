@@ -18,15 +18,14 @@
 }
 
 .login-image {
-    max-width: 60%;
-    width: auto;
+    width: 50%;
     height: auto;
     object-fit: contain;
     pointer-events: none;
     filter: brightness(1.0) contrast(1.5);
     background: transparent;
     box-shadow: none;
-    margin-bottom: 5%;
+    margin-bottom: 2%;
 }
 
 .input-group {

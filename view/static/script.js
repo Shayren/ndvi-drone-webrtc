@@ -78,7 +78,6 @@ function updateImageSelectorAccess() {
 
 function updateHostUI(isHostNow) {
     isHost = isHostNow;
-    updateImageSelectorAccess();
 
     if (isHostNow) {
         imageSelectorWrapper.style.display = "block";
@@ -92,6 +91,7 @@ function updateHostUI(isHostNow) {
         imageSelectorWrapper.style.display = "block";
         imageSelector.disabled = true;
     }
+    updateImageSelectorAccess();
 }
 
 // Fullscreen toggle for both videos
@@ -146,16 +146,20 @@ socket.on("username_error", (data) => {
     }, 300);
 });
 
-socket.on("join_success", () => {
+socket.on("join_success", ({ username }) => {
+
+    savedUsername = username;
+    localStorage.setItem("ndvi-username", savedUsername);
+
     statusIndicator.classList.add("connected");
     statusText.textContent = `Connected as: ${savedUsername}`;
 
     loginScreen.classList.add("fade-out");
 
     showAlert("🎉 Join success!", "success");
+    activatePanel("av");
 
     if (!isHost) {
-        activatePanel("av");
         imageSelectorWrapper.style.display = "block";
         imageSelector.disabled = true;
     }
@@ -240,6 +244,7 @@ socket.on("viewer_list", ({ viewers, count, hostId }) => {
 
 // Khi nhận được frame từ broadcaster (chỉ dùng cho MJPEG stream base64)
 socket.on("image_frame", (data) => {
+
     streamImg.src = "data:image/jpeg;base64," + data.image;
     safeDisplay(waiting, "none");
     safeDisplay(streamImg, "block");
@@ -337,6 +342,7 @@ const panelCp = document.getElementById("panel-cp");
 const panelAv = document.getElementById("panel-av");
 
 function activatePanel(type) {
+    console.log(`[activatePanel] Switching to panel: ${type}`);
     const panelCp = document.getElementById("panel-cp");
     const panelAv = document.getElementById("panel-av");
 
