@@ -9,8 +9,8 @@ const status = document.getElementById("status");
 const statusIndicator = status.querySelector(".status-indicator");
 const statusText = status.querySelector("span");
 
-const streamImg = document.getElementById("stream-img");
-const videoPlaceholder = document.getElementById("video-placeholder");
+const liveVideo = document.getElementById("live-video");
+const placeholderVideo = document.getElementById("video-placeholder");
 const waiting = document.getElementById("waiting");
 
 const viewerCount = document.getElementById("viewer-count");
@@ -20,8 +20,78 @@ const imageSelector = document.getElementById("image-type");
 
 let isHost = false;
 let savedUsername = "";
-let alertActive = false;
+
 const alertQueue = [];
+let alertActive = false;
+
+let pc = null;
+let remoteStream = null;
+let broadcasterSocketId = null;
+
+socket.on("broadcaster_joined", ({ broadcaster_id }) => {
+    console.log("📡 Đã ghép với broadcaster:", broadcaster_id);
+    broadcasterSocketId = broadcaster_id;
+    startConnectionWithBroadcaster();
+});
+
+// Viewer chỉ setup PC, chờ nhận offer
+function startConnectionWithBroadcaster() {
+    pc = new RTCPeerConnection({
+        iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
+    });
+
+    remoteStream = new MediaStream();
+    liveVideo.srcObject = remoteStream;
+
+    pc.ontrack = (event) => {
+        console.log("🎥 Track received");
+        remoteStream.addTrack(event.track);
+        safeDisplay(waiting, "none");
+        safeDisplay(placeholderVideo, "none");
+        safeDisplay(liveVideo, "block");
+    };
+
+    pc.onicecandidate = (event) => {
+        if (event.candidate && broadcasterSocketId) {
+            socket.emit("candidate", {
+                target: broadcasterSocketId,
+                candidate: event.candidate
+            });
+        }
+    };
+
+    console.log("[VIEWER] Waiting for offer...");
+}
+
+// Nhận offer từ broadcaster
+socket.on("offer", async ({ from, description }) => {
+    console.log("📨 Nhận offer từ broadcaster:", from);
+    if (!pc) startConnectionWithBroadcaster(); // nếu chưa có
+
+    await pc.setRemoteDescription(new RTCSessionDescription(description));
+
+    const answer = await pc.createAnswer();
+    await pc.setLocalDescription(answer);
+
+    socket.emit("answer", {
+        target: from,
+        description: pc.localDescription
+    });
+
+    console.log("[VIEWER] Sent answer to broadcaster");
+});
+
+// Nhận ICE candidate
+socket.on("candidate", async ({ from, candidate }) => {
+    console.log("📨 Nhận ICE candidate từ", from);
+    if (pc) {
+        try {
+            await pc.addIceCandidate(new RTCIceCandidate(candidate));
+        } catch (err) {
+            console.error("⚠️ Lỗi khi thêm ICE candidate", err);
+        }
+    }
+});
 
 function updateViewerList(viewers, currentHostId, myId) {
     const list = document.getElementById("viewer-list");
@@ -95,7 +165,7 @@ function updateHostUI(isHostNow) {
 }
 
 // Fullscreen toggle for both videos
-[streamImg, videoPlaceholder].forEach((vid) => {
+[liveVideo, placeholderVideo].forEach((vid) => {
     vid.addEventListener("click", () => {
         if (!document.fullscreenElement) {
             vid.requestFullscreen().catch((err) =>
@@ -111,8 +181,8 @@ function updateHostUI(isHostNow) {
 socket.on("broadcaster_connected", () => {
     console.log("📡 Broadcaster đã kết nối");
     safeDisplay(waiting, "none");
-    safeDisplay(streamImg, "block");
-    safeDisplay(videoPlaceholder, "none");
+    safeDisplay(liveVideo, "block");
+    safeDisplay(placeholderVideo, "none");
 });
 
 socket.on("image_type_changed", ({ type }) => {
@@ -242,27 +312,24 @@ socket.on("viewer_list", ({ viewers, count, hostId }) => {
     });
 });
 
-// Khi nhận được frame từ broadcaster (chỉ dùng cho MJPEG stream base64)
-socket.on("image_frame", (data) => {
-
-    streamImg.src = "data:image/jpeg;base64," + data.image;
-    safeDisplay(waiting, "none");
-    safeDisplay(streamImg, "block");
-    safeDisplay(videoPlaceholder, "none");
-});
-
 // Broadcaster rời đi
 socket.on("peer_disconnect", () => {
+    console.log("🔌 Peer disconnected");
     safeDisplay(waiting, "none");
-    safeDisplay(streamImg, "none");
-    safeDisplay(videoPlaceholder, "block");
+    safeDisplay(liveVideo, "none");
+    safeDisplay(placeholderVideo, "block");
+
+    if (pc) {
+        pc.close();
+        pc = null;
+    }
 });
 
 // Chưa có broadcaster
 socket.on("no_broadcaster", () => {
     safeDisplay(waiting, "flex");
-    safeDisplay(streamImg, "none");
-    safeDisplay(videoPlaceholder, "block");
+    safeDisplay(liveVideo, "none");
+    safeDisplay(placeholderVideo, "block");
 });
 
 // Trạng thái kết nối
@@ -381,8 +448,8 @@ window.addEventListener("load", () => {
     });
 
     safeDisplay(waiting, "none");
-    safeDisplay(streamImg, "none");
-    safeDisplay(videoPlaceholder, "block");
+    safeDisplay(liveVideo, "none");
+    safeDisplay(placeholderVideo, "block");
 });
 
 const header = document.getElementById("top-header");

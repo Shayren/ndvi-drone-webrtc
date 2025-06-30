@@ -18,6 +18,30 @@ pending_viewers = set()
 current_image_type = "default"
 host_sid = None
 
+@sio.on("offer")
+async def handle_offer(sid, data):
+    target_id = data.get("target")
+    description = data.get("description")
+    if target_id and description:
+        print(f"[SIGNALING] Offer từ {sid} → {target_id}")
+        await sio.emit("offer", {"from": sid, "description": description}, room=target_id)
+
+@sio.on("answer")
+async def handle_answer(sid, data):
+    target_id = data.get("target")
+    description = data.get("description")
+    if target_id and description:
+        print(f"[SIGNALING] Answer từ {sid} → {target_id}")
+        await sio.emit("answer", {"from": sid, "description": description}, room=target_id)
+
+@sio.on("candidate")
+async def handle_candidate(sid, data):
+    target_id = data.get("target")
+    candidate = data.get("candidate")
+    if target_id and candidate:
+        print(f"[SIGNALING] ICE candidate từ {sid} → {target_id}")
+        await sio.emit("candidate", {"from": sid, "candidate": candidate}, room=target_id)
+
 @sio.event
 async def connect(sid, environ):
     print(f"[+] Client connected: {sid}")
@@ -26,7 +50,8 @@ async def connect(sid, environ):
 @sio.event
 async def disconnect(sid):
     to_remove = []
-
+    print(f"[SERVER] 👋 DISCONNECT: {sid}")
+    
     for viewer_id, broadcaster_id in list(peers.items()):
         if broadcaster_id == sid:
             print(f"[SERVER] Sending peer_disconnect to {viewer_id} because broadcaster {sid} disconnected")
@@ -64,6 +89,7 @@ async def disconnect(sid):
             host_sid = None
 
     joined_viewers.discard(sid)
+    pending_viewers.discard(sid)
     await broadcast_viewer_list()
 
 @sio.event
@@ -80,13 +106,14 @@ async def join_broadcaster(sid):
     for viewer_sid in list(pending_viewers):
         peers[viewer_sid] = sid
         await sio.emit('viewer_joined', {'viewer_id': viewer_sid}, room=sid)
+        await sio.emit('broadcaster_joined', {'broadcaster_id': sid}, room=viewer_sid)
         print(f"[SERVER] Pending viewer {viewer_sid} paired → broadcaster {sid}")
 
     # ✅ Nếu host viewer đã có sẵn từ trước nhưng chưa gán broadcaster
-    global host_sid
     if host_sid and host_sid not in peers:
         peers[host_sid] = sid
         await sio.emit('viewer_joined', {'viewer_id': host_sid}, room=sid)
+        await sio.emit('broadcaster_joined', {'broadcaster_id': sid}, room=host_sid)
         print(f"[SERVER] Gán lại host viewer {host_sid} → broadcaster {sid}")
 
     # 🔁 Gửi lại image type hiện tại cho broadcaster mới
@@ -170,12 +197,6 @@ async def join_viewer(sid, data):
 
     pending_viewers.add(sid)
     print(f"[SERVER] No broadcaster for viewer {sid} ('{username}'). Added to pending.")
-
-@sio.event
-async def image_frame(sid, data):
-    for viewer_id, broadcaster_id in list(peers.items()): 
-        if broadcaster_id == sid:
-            await sio.emit("image_frame", data, room=viewer_id)
 
 @sio.event
 async def change_image_type(sid, data):
