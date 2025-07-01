@@ -246,18 +246,7 @@ async def index(request):
 app.router.add_get('/', index)
 app.router.add_static('/static/', path=STATIC_DIR, name='static')
 
-@atexit.register
-def cleanup():
-    print("[SERVER] Shutting down ngrok...")
-    try:
-        ngrok_proc.terminate()
-    except Exception as e:
-        print(f"[ERROR] Could not terminate ngrok: {e}")
-
 if __name__ == '__main__':
-    ngrok_proc = subprocess.Popen(
-        ["ngrok", "http", "--subdomain=vindvi", "--region=ap", "5000"],
-        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
-    )
-    print("[SERVER] Starting on http://localhost:5000")
-    web.run_app(app, port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    print(f"[SERVER] Starting signaling server on http://localhost:{port} or accessible via ngrok tunnel.")
+    web.run_app(app, port=port)
