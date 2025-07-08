@@ -139,7 +139,11 @@ async def transfer_host(sid, data):
     await broadcast_viewer_list()
 
 @sio.event
-async def join_viewer(sid, data):
+async def join_viewer(sid, data=None):
+    if not isinstance(data, dict):
+        await sio.disconnect(sid)
+        return
+
     raw_username = data.get("username", "").strip()
     if not raw_username:
         # Tạo tên mặc định dạng "Guest42"

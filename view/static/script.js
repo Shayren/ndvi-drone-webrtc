@@ -37,11 +37,47 @@ socket.on("broadcaster_joined", ({ broadcaster_id }) => {
 // Viewer chỉ setup PC, chờ nhận offer
 function startConnectionWithBroadcaster() {
     pc = new RTCPeerConnection({
-        iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
+        iceServers: [
+            { urls: ['stun:global.stun.twilio.com:3478'] },
+            {
+                urls: [
+                    'turn:global.turn.twilio.com:3478?transport=udp',
+                    'turn:global.turn.twilio.com:3478?transport=tcp',
+                    'turn:global.turn.twilio.com:443?transport=tcp',
+                ],
+                username: 'e6cc068f3ad53c8733550f71a82a4fef33edd4e993625db6168901f1288dd960',
+                credential: 'iOTDpkraJq+JmfJ1tf7S4YLY553Tdk8FRBSRt8N1loE='
+            },
+        ],
+        iceTransportPolicy: 'relay'
     });
 
     remoteStream = new MediaStream();
     liveVideo.srcObject = remoteStream;
+
+    const seenICE = new Set();
+
+    pc.onicecandidate = (event) => {
+        if (event.candidate && broadcasterSocketId) {
+            const c = event.candidate.candidate;
+            const type = (c.match(/ typ (\w+)/) || [])[1] || 'unknown';
+            if (!seenICE.has(type)) {
+                console.log(`🧊 Local ICE candidate [${type}]`);
+                seenICE.add(type);
+            }
+
+            socket.emit("candidate", {
+                target: broadcasterSocketId,
+                candidate: {
+                    candidate: c,
+                    sdpMid: event.candidate.sdpMid,
+                    sdpMLineIndex: event.candidate.sdpMLineIndex
+                }
+            });
+        } else {
+            console.log("✅ Done gathering local ICE candidates");
+        }
+    };
 
     pc.ontrack = (event) => {
         console.log("🎥 Track received");
@@ -51,45 +87,67 @@ function startConnectionWithBroadcaster() {
         safeDisplay(liveVideo, "block");
     };
 
-    pc.onicecandidate = (event) => {
-        if (event.candidate && broadcasterSocketId) {
-            socket.emit("candidate", {
-                target: broadcasterSocketId,
-                candidate: event.candidate
-            });
-        }
+    liveVideo.onplay = () => {
+        let lastTime = performance.now();
+        liveVideo.requestVideoFrameCallback(function step(now) {
+            const delay = now - lastTime;
+            lastTime = now;
+            console.log(`⏱️ Frame delay: ${delay.toFixed(2)}ms`);
+            liveVideo.requestVideoFrameCallback(step);
+        });
     };
 
     console.log("[VIEWER] Waiting for offer...");
 }
 
-// Nhận offer từ broadcaster
+const pendingCandidates = {};
+
 socket.on("offer", async ({ from, description }) => {
     console.log("📨 Nhận offer từ broadcaster:", from);
-    if (!pc) startConnectionWithBroadcaster(); // nếu chưa có
+    if (!pc) startConnectionWithBroadcaster();
 
     await pc.setRemoteDescription(new RTCSessionDescription(description));
+    console.log("✅ Remote description set");
 
     const answer = await pc.createAnswer();
     await pc.setLocalDescription(answer);
+    console.log("✅ Local description created and set");
 
     socket.emit("answer", {
         target: from,
         description: pc.localDescription
     });
+    console.log("[📤] Answer sent to broadcaster");
 
-    console.log("[VIEWER] Sent answer to broadcaster");
+    if (pendingCandidates[from]) {
+        for (const cand of pendingCandidates[from]) {
+            try {
+                await pc.addIceCandidate(cand);
+                console.log("✅ Queued candidate added");
+            } catch (e) {
+                console.warn("⚠️ Failed to add queued candidate:", e);
+            }
+        }
+        delete pendingCandidates[from];
+    }
 });
 
-// Nhận ICE candidate
-socket.on("candidate", async ({ from, candidate }) => {
-    console.log("📨 Nhận ICE candidate từ", from);
-    if (pc) {
-        try {
-            await pc.addIceCandidate(new RTCIceCandidate(candidate));
-        } catch (err) {
-            console.error("⚠️ Lỗi khi thêm ICE candidate", err);
-        }
+socket.on("candidate", ({ from, candidate }) => {
+    if (!candidate || !candidate.candidate) return;
+
+    const type = (candidate.candidate.match(/ typ (\w+)/) || [])[1] || 'unknown';
+    console.log(`🌐 Received remote ICE [${type}] from ${from}`);
+
+    if (!pc || !pc.remoteDescription) {
+        pendingCandidates[from] = pendingCandidates[from] || [];
+        pendingCandidates[from].push(candidate);
+        console.log("🕓 ICE candidate queued (before remoteDescription)");
+    } else {
+        pc.addIceCandidate(candidate).then(() => {
+            console.log("✅ ICE candidate added");
+        }).catch((err) => {
+            console.warn("⚠️ Error adding ICE candidate:", err);
+        });
     }
 });
 
@@ -204,17 +262,8 @@ imageSelector.addEventListener("change", () => {
 function submitUsername() {
     const username = usernameInput.value.trim();
     savedUsername = username;
-    socket.emit("join_viewer", { username });
+    socket.emit("join_viewer", { username: savedUsername || "" });
 }
-
-// Xử lý sự kiện khi lỗi tên
-socket.on("username_error", (data) => {
-    showAlert(data.message, "danger");
-    usernameInput.classList.add("shake");
-    setTimeout(() => {
-        usernameInput.classList.remove("shake");
-    }, 300);
-});
 
 socket.on("join_success", ({ username }) => {
 
